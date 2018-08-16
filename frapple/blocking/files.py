@@ -89,52 +89,58 @@ class AppleFrostBlockingInitHandler(TemplateHandlerMethods,
 
     def extractTemplateParameters(self, request_dict):
         today = datetime.date.today()
-        # start with dates of current season 
-        parameters = self.extractServerParameters(request_dict)
 
-        # deafult season parameters
-        year  = self.mode_config.get('season', None)
-        if year is None: year = today.year
-        elif isinstance(year, basestring): year = int(year)
-        parameters['season'] = year
+        # server access parameters from request dict
+        parameters = self.extractServerParameters(request_dict)
+        # season limit parameters from request dict
+        parameters.update(self.extractSeasonDates(request_dict))
+
+        # template-specific view/date parameters
+        parameters['days_in_view'] = days_in_view = self.tool.days_in_view
+        days_before_doi = datetime.timedelta(days=days_in_view/2)
 
         season_end_day = list(self.tool.season_end_day)
         parameters['season_end_day'] = season_end_day
-        season_end_date = self.seasonEndDate(year)
-        parameters['season_end'] = self.appDateFormat(season_end_date)
 
         season_start_day = list(self.tool.season_start_day)
         parameters['season_start_day'] = season_start_day
-        parameters['season_start'] = \
-            self.appDateFormat(self.seasonStartDate(year))
+
+        season = parameters['season']
         description = self.tool.season_description
         parameters['season_description'] = \
-            description % {'start_year':year-1, 'end_year':year }
+            description % {'start_year':season-1, 'end_year':season }
 
-        # add default date of interest
-        default_doi = today - datetime.timedelta(days=1)
-        if default_doi > season_end_date:
-            default_doi = self.tool.get('default_doi', None)
-            if default_doi is None:
-                default_doi = season_end_date - datetime.timedelta(days=15)
-            else: # default doi is a list/tuple
-                if default_doi[0] < season_end_day[0]:
-                    default_doi = self.dayToSeasonDate(year,default_doi)
-                else: default_doi = self.dayToSeasonDate(year-1,default_doi)
+        # default date of interest
+        default_doi = self.tool.get('default_doi', None)
+        if default_doi is None:
+            #forecast_days = 6
+            #max_possible_date = today + datetime.timedelta(days=forecast_days)
+            #default_doi = max_possible_date - days_before_doi
+            default_doi = today
+        elif isinstance(default_doi, (list,tuple)):
+            if default_doi[0] < season_end_day[0]:
+                default_doi = self.dayToSeasonDate(season, default_doi)
+            else: default_doi = self.dayToSeasonDate(season-1, default_doi)
+
+        if default_doi > today:
+            default_doi = today
+            #default_doi = max(self.stringToDate(parameters['season_start']), 
+            #                  (today - days_before_doi))
+
+        season_end = self.stringToDate(parameters['season_end'])
+        if default_doi > season_end \
+        or days_in_view > ((season_end - default_doi).days + 1):
+            default_doi = season_end - days_before_doi
+
         default_doi = self.appDateFormat(default_doi)
         parameters['default_doi'] = default_doi 
-        parameters['doi'] = default_doi
 
-        parameters['days_in_view'] = self.tool.days_in_view
+        # make sure there is an doi selected for initial requests
+        if not 'doi' in parameters: parameters['doi'] = default_doi
 
         # add viriety deafults
         parameters['default_variety'] = self.tool.default_variety
         parameters['varieties_js'] = self.tool.varieties_js
-
-        # check for multiple years ... always a sequence
-        first_year = self.tool.get('first_year', year)
-        parameters['min_year'] = first_year
-        parameters['max_year'] = self.tool.get('last_year', first_year)
 
         # add location parameters
         loc_key = self.tool.default_location

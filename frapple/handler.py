@@ -42,6 +42,30 @@ class AppleFrostRequestHandlerMethods(AppleFrostToolCommonMethods):
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+    def extractSeasonDates(self, request_dict):
+        # check for multiple years ... always a sequence
+        min_year = self.tool.get('first_year', self.minAvailableSeason())
+        max_year = self.tool.get('last_year', self.maxAvailableSeason())
+        parameters = { 'min_year':min_year,  'max_year': max_year } 
+
+        # default season parameters
+        season = self.mode_config.get('season', max_year)
+        if isinstance(season, basestring): season = int(season)
+        parameters['season'] = season
+
+        season_end = self.seasonEndDate(season)
+        parameters['season_end'] = self.appDateFormat(season_end)
+
+        season_start = self.seasonStartDate(season)
+        parameters['season_start'] = self.appDateFormat(season_start)
+
+        if 'doi' in request_dict:
+            parameters['doi'] = request_dict['doi'] 
+
+        return parameters
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
     def formatSeasonDescription(self, season):
         year = int(season)
         template = self.tool.season_description
@@ -61,4 +85,10 @@ class AppleFrostRequestHandlerMethods(AppleFrostToolCommonMethods):
         self.region = self.regionConfig(key)
         key = self.tool.get('data_source_key', self.project.source)
         self.source = self.sourceConfig(key)
+
+   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    def stringToDate(self, date_string):
+        date = tuple([int(part) for part in date_string.split('-')])
+        return datetime.date(*date)
 

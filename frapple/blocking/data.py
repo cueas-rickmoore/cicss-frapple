@@ -66,8 +66,7 @@ class AppleFrostDataRequestHandler(AppleFrostVarietyRequestHandler):
             del location['coords']
 
         # get the configured season limits
-        season = request_dict.get('season', None)
-        dates = self.extractSeasonDates(request_dict, season)
+        dates = self.extractSeasonDates(request_dict)
         season = dates['season']
 
         if filetype == 'risk':
@@ -83,7 +82,7 @@ class AppleFrostDataRequestHandler(AppleFrostVarietyRequestHandler):
 
         # capture the significant dates from the min temp dataset
         if 'dates' in self.mode_config \
-        and target_year == self.mode_config.season:
+        and season == self.mode_config.season:
             dates.update(self.mode_config.dates.attrs)
         else: dates.update(reader.significantDates('mint'))
         # make sure the dates from files, etc. are kosher
@@ -180,10 +179,8 @@ class AppleFrostSeasonDatesHandler(AppleFrostBlockingRequestHandler):
     def __call__(self, request):
         # decode request variables into a dictionary
         request_dict = self.requestAsDict(request)
-        # target_year
-        target_year = request_dict.get('season', None)
         # get the configured season limits
-        dates = self.extractSeasonDates(request_dict, target_year)
+        dates = self.extractSeasonDates(request_dict)
         if self.verbose:
             print 'season dates array size', len(dates)
             print dates
