@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GDD Tool User Interface</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta name="toolname" content="frapple">
+<meta name="toolserver" content="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources">
+<style>
+    html { height: 100%; }
+    body { width: 1024px; height: 768px; }
+</style>
+
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/jquery-1.11.3-min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/jquery-ui-1.11.4-min.js"></script>
+
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/dev-resources/js/location-dialog.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/apple/tool_pkg/frapple/dev-resources/js/interface.js"></script>
+
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/dev-resources/style/csftool-jquery-ui.css">
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/dev-resources/style/location-dialog.css">
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/dev-resources/style/csftool.css">
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/apple/tool_pkg/frapple/dev-resources/style/frapple.css">
+
+<script>
+jQuery = $;
+TOOL_UI = null;
+jQuery(document).ready( function () {
+    console.log("EVENT :: the document is ready");
+    TOOL_UI = jQuery("#csftool-input").AppleFrostUserInterface( [
+        { csftool: "file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources" },
+        { date_range: ["2016-02-01","2016-03-01"] },
+        { default_variety: "empire" },
+        { frapple: "file://localhost/Volumes/Transport/venvs/apple/tool_pkg/frapple/dev-resources" },
+        { initial_date: "2016-02-13" },
+        { varieties: { empire: 'Empire', mac_geneva: 'MacIntosh (Geneva)', red_delicious: "Red Delicious" }, },
+        { variety: "cab_franc" },
+        { variety_selector: ['<option class="empire" value="empire">Empire</option>',
+                             '<option class="mac_geneva" value="mac_geneva">MacIntosh (Geneva)</option>',
+                             '<option class="red_delicious" value="red_delicious">Red Delicious</option>'].join(" ") },
+        ] );
+    TOOL_UI('year_range', 2015, 2017);
+});
+</script>
+
+</head>
+<body>
+  <div id="inner-content">
+    <div id="csftool-content">
+      <div id="csftool-input"> </div>
+      <div id="csftool-display"> </div>
+      <div id="csftool-location-dialog" title="Select or create a location"></div>
+    </div>
+  </div>
+</body>
+</html>
+

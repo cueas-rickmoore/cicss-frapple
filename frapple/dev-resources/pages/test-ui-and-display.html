@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GDD Tool User Interface</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta name="toolname" content="frapple">
+<meta name="toolserver" content="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources">
+<style>
+    html { height: 100%; }
+    body { width: 1024px; height: 768px; }
+</style>
+
+<script type="text/javascript" src="https://maps.google.com/maps/api/js?key=AIzaSyDv5pQYe9kRbolVUt0o8XSXSQl4g8BHrrQ"></script>
+
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/jquery-1.11.3-min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/jquery-ui-1.11.4-min.js"></script>
+
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/dev-resources/js/location-dialog.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/apple/tool_pkg/frapple/dev-resources/js/interface.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/apple/tool_pkg/frapple/dev-resources/js/display.js"></script>
+
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/dev-resources/style/csftool-jquery-ui.css">
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/dev-resources/style/location-dialog.css">
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/dev-resources/style/csftool.css">
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/apple/tool_pkg/frapple/dev-resources/style/frapple.css">
+
+<script>
+jQuery = $;
+TOOL_UI = null;
+jQuery(document).ready( function () {
+    console.log("EVENT :: the document is ready");
+    TOOL_UI = jQuery("#csftool-input").AppleFrostUserInterface( [
+        { csftool: "file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources" },
+        { date_range: ["2016-03-01","2016-03-30"] },
+        { default_variety: "cab_franc" },
+        { frapple: "file://localhost/Volumes/Transport/venvs/apple/tool_pkg/frapple/dev-resources" },
+        { initial_date: "2016-03-25" },
+        { varieties: { cab_franc: 'Cabernat Franc', concord: 'Concord', riesling: "Riesling" }, },
+        { variety: "cab_franc" },
+        { variety_selector: ['<option class="cab_franc" value="cab_franc">Cabernet Franc</option>',
+                             '<option class="concord" value="concord">Concord</option>',
+                             '<option class="riesling" value="riesling">Riesling</option>'].join(" ") },
+        ] );
+    TOOL_UI('year_range', 2016, 2016);
+
+    var options = [ { width:600 }, { height:500 } ];
+    MAP_DIALOG = jQuery("#csftool-location-dialog").CsfToolLocationDialog();
+    MAP_DIALOG("google", google);
+    MAP_DIALOG("bind", "close", function(ev, context) { 
+        console.log("EVENT :: LocationDialog closed");
+        jQuery.each(context, function(key, value) { console.log("    ATTRIBUTE " + key + " = " + value); });
+        if (context.selected_location != context.initial_location) {
+            console.log("Selected location changed from " + context.initial_location.address + " to " + context.selected_location.address);
+            var loc_obj = context.selected_location;
+            TOOL_UI("location", loc_obj);
+        }
+    });
+
+    TOOL_UI("bind", "locationChangeRequest", function(ev, loc_obj) { MAP_DIALOG("open", loc_obj); });
+});
+</script>
+
+</head>
+<body>
+  <div id="inner-content">
+    <div id="csftool-content">
+      <div id="csftool-input"> </div>
+      <div id="csftool-display"> </div>
+      <div id="csftool-location-dialog" title="Select or create a location"></div>
+    </div>
+  </div>
+</body>
+</html>
+

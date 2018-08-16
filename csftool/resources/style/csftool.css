@@ -1,0 +1,79 @@
+@media screen {
+
+    #csftool-content {
+        height: 460px;
+        width: 900px;
+        margin: 0 0 0 0;
+        font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        border: 2px solid #00bb00;
+        }
+
+    #csftool-content .csftool-center { text-align: center; }
+    #csftool-content .csftool-left { text-align: left; }
+    #csftool-content .csftool-em { font-weight: bold; }
+    #csftool-content .csftool-clearfix { overflow: auto; }
+
+    /* input panel */
+    #csftool-input {
+        display: inline-block;
+        float: left;
+        height: 460px;
+        width: 198px;
+        margin: 0 0 0 0;
+        padding: 0 0 0 0;
+        background: #ffffff;
+        border-right: 2px solid #00bb00;
+        }
+
+    #csftool-input input[type="text"],
+    #csftool-input input[type="number"],
+    #csftool-input select {
+        display: inline;
+        height: 25px;
+        line-height: 1.25em;
+        padding: 0;
+        margin-bottom: 0;
+        font-size: 1em;
+        color: #000000;
+        border-radius: 3px;
+        vertical-align: middle;
+        box-shadow: none;
+        border: none;
+        width: 120px;
+        max-width: 196px;
+        font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background-color: #eaedf2;
+        -webkit-transition: background-color 0.24s ease-in-out;
+        transition: background-color 0.24s ease-in-out;
+    }
+
+    #csftool-input input[type="text"].error,
+    #csftool-input input[type="text"].is-invalid,
+    #csftool-input input[type="number"].error,
+    #csftool-input input[type="number"].is-invalid,
+    #csftool-input select.error,
+    #csftool-input select.is-invalid {
+        color: #df2029;
+        border-color: #fbe3e4;
+        background-color: #fbe3e4;
+        background-position: 99% center;
+        background-image: none;
+        outline-color: #fbe3e4;
+    }
+
+    /* display panel */
+    #csftool-display {
+        height: 460px;
+        width: 696px;
+        margin-left: 200px;
+        /* border-top: 2px solid #00bb00;
+        border-right: 2px solid #00bb00;
+        border-bottom: 2px solid #00bb00; */
+        border: none;
+        text-align: center;
+        background: #ffffff;
+        }
+
+    /* end of csftool screen styling */
+    }
+

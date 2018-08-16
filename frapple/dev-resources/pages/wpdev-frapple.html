@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GDD Tool</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta name="toolname" content="gddtool">
+<meta name="toolserver" content="http:localhost:8082">
+<style>
+    html { height: 100%; }
+    body { width: 1024px; height: 768px; }
+</style>
+
+<link rel="icon" type="image/png" href="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/icons/favicon.png">
+
+<!--script type="text/javascript" src="https://maps.google.com/maps/api/js?key=AIzaSyDv5pQYe9kRbolVUt0o8XSXSQl4g8BHrrQ"></script -->
+
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/jquery.js"></script>
+<!--script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/jquery-ui-1.11.4-min.js"></script-->
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/core.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/widget.min.js"></script-->
+<!--script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/mouse.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/draggable.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/droppable.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/resizable.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/selectable.min.js"></script>
+<!--script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/sortable.min.js"></script-->
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect.min.js"></script>
+<!--script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-blind.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-bounce.min.js"></script-->
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-clip.min.js"></script>
+<!--script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-drop.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-explode.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-fade.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-fold.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-highlight.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-puff.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-pulsate.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-scale.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-shake.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-size.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-slide.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/effect-transfer.min.js"></script-->
+<!--script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/accordion.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/autocomplete.min.js"></script-->
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/button.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/datepicker.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/dialog.min.js"></script>
+<!--script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/menu.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/menubar.min.js"></script-->
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/popup.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/position.min.js"></script>
+<!--script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/progressbar.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/slider.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/spinner.min.js"></script-->
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/tabs.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/wp/ui/tooltip.min.js"></script>
+
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/highcharts.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/highcharts-more.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/highcharts-exporting.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/dev-location-dialog.js"></script>
+
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/gddtool/gddtool_pkg/gddtool/resources/js/dev-interface.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/gddtool/gddtool_pkg/gddtool/resources/js/dev-display.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/gddtool/gddtool_pkg/gddtool/resources/js/dev-gddtool.js"></script>
+
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/style/location-dialog.css">
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/style/dev-csftool-jquery-ui.css">
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/style/growth-circle.css">
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/style/csftool.css">
+<link rel="stylesheet" type="text/css" href="file://localhost/Volumes/Transport/venvs/gddtool/gddtool_pkg/gddtool/resources/style/gddtool.css">
+
+<script>
+//jQuery = $;
+GDDTOOL_UI = null;
+</script>
+
+</head>
+<body>
+  <div id="inner-content">
+    <div id="csftool-content">
+      <div id="csftool-input"> </div>
+      <div id="csftool-display"> </div>
+      <div id="csftool-location-dialog" title="Select a new location"></div>
+    </div>
+  </div>
+  <script>
+  GDDTOOL_UI = jQuery("#csftool-input").GddToolUserInterface( [
+          { csftool: "file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources" },
+          { gddtool: "file://localhost/Volumes/Transport/venvs/gddtool/gddtool_pkg/gddtool/resources" }
+          ] );
+  </script>
+</body>
+</html>

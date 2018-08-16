@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Apple Freeze Damage Potential Tool</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta name="toolname" content="frapple">
+<meta name="toolserver" content="http://localhost:8082">
+<style>
+    html { height: 100%; }
+    body { width: 1024px; height: 768px; }
+</style>
+
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/jquery-1.11.3-min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/jquery-ui-1.11.4-min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/highcharts-4.2.6.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/highcharts-4.2.6-more.min.js"></script>
+<script type="text/javascript" src="file://localhost/Volumes/Transport/venvs/csftool/csftool_pkg/csftool/resources/js/highcharts-4.2.6-exporting.min.js"></script>
+<!--script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
+<script type="text/javascript" src="http://code.highcharts.com/highcharts-more.js"></script>
+<script type="text/javascript" src="http://code.highcharts.com/modules/exporting.js"></script-->
+
+</head>
+<body>
+  <div id="content">
+  </div>
+  <script>
+    var dataTemperature = [7.0, 6.9, 9.5, 14.5, 18.2, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6];
+    var minTemperature = 5;
+    var maxTemperature = 30;
+    
+    var dataRainfall = [49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4];
+    var minRainfall = 0;
+    var maxRainfall = 250;
+    
+    //$("#content").highcharts("Chart", config);
+    //var chart = $("#content").highcharts();
+    var chart = new Highcharts.Chart({
+            chart: {
+                zoomType: 'xy',
+                renderTo: 'content',
+            },
+            title: {
+                text: 'Average Monthly Temperature and Rainfall in Tokyo'
+            },
+            subtitle: {
+                text: 'Source: WorldClimate.com'
+            },
+            xAxis: [{
+                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            }],
+            yAxis: [{ // Primary yAxis
+                min:minTemperature,
+                max:maxTemperature,
+                gridLineWidth:0.5,
+                gridZIndex:4,
+                labels: {
+                    format: '{value}°C',
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                title: {
+                    text: 'Temperature',
+                    style: {
+                        color: '#89A54E'
+                    }
+                }
+            }, { // Secondary yAxis
+                min:minRainfall,
+                max:maxRainfall,
+                gridLineWidth:0,
+                title: {
+                    text: 'Rainfall',
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+                labels: {
+                    format: '{value} mm',
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+                opposite: true
+            }],
+            tooltip: {
+                shared: true
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'left',
+                x: 120,
+                verticalAlign: 'top',
+                y: 100,
+                floating: true,
+                backgroundColor: '#FFFFFF'
+             },
+            series: [{
+                name: 'Temperature',
+                type: 'area',
+                color: 'red',
+                lineWidth: 0,
+                fillOpacity:0.5,
+                data: dataTemperature,
+                zIndex:1,
+                showInLegend: false
+           }, {
+                name: 'Rainfall',
+                yAxis: 1,
+                type: 'area',
+                color: 'white',
+                lineWidth:0,
+                fillOpacity:1.0,
+                data: dataRainfall,
+                zIndex:2,
+                showInLegend: false
+            }]
+        });
+ 	chart.addSeries({
+                name: 'Temperature',
+                type: 'line',
+                color: 'red',
+                lineWidth:2,
+                data: dataTemperature,
+                zIndex:10
+            }, false);
+ 	chart.addSeries({
+                name: 'Rainfall',
+                yAxis: 1,
+                type: 'line',
+                color: 'blue',
+                lineWidth:2,
+                data: dataRainfall,
+                zIndex:10
+            }, true);
+      </script>
+  </body>
+</html>

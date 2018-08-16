@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GDD Tool User Interface</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta name="toolname" content="frapple">
+<meta name="toolserver" content="http://localhost:8082/csftool/resources">
+<style>
+    html { height: 100%; }
+    body { width: 1024px; height: 768px; }
+</style>
+
+<script type="text/javascript" src="http://localhost:8082/csftool/js/jquery-1.11.3-min.js"></script>
+<script type="text/javascript" src="http://localhost:8082/csftool/js/jquery-ui-1.11.4-min.js"></script>
+<script type="text/javascript" src="http://localhost:8082/csftool/js/moment.min.js"></script>
+
+<script type="text/javascript" src="http://localhost:8082/csftool/js/location-dialog.js"></script>
+<script type="text/javascript" src="http://localhost:8082/frapple/js/interface.js"></script>
+<script type="text/javascript" src="http://localhost:8082/frapple/js/tool.js"></script>
+
+<link rel="stylesheet" type="text/css" href="http://localhost:8082/csftool/style/csftool-jquery-ui.css">
+<link rel="stylesheet" type="text/css" href="http://localhost:8082/csftool/style/location-dialog.css">
+<link rel="stylesheet" type="text/css" href="http://localhost:8082/csftool/style/csftool.css">
+<link rel="stylesheet" type="text/css" href="http://localhost:8082/frapple/style/frapple.css">
+
+<script>
+jQuery = $;
+TOOL_UI = null;
+jQuery(document).ready( function () {
+    console.log("EVENT :: the document is ready");
+    TOOL_UI = jQuery("#csftool-input").AppleFrostUserInterface( [
+        { csftool: "http://localhost:8082/csftool" },
+        { date_range: ["2016-03-01","2016-03-30"] },
+        { default_variety: "cab_franc" },
+        { frapple: "http://localhost:8082/frapple" },
+        { initial_date: "2016-03-25" },
+        { varieties: { cab_franc: 'Cabernat Franc', concord: 'Concord', riesling: "Riesling" }, },
+    ] );
+    TOOL_UI('year_range', 2016, 2016);
+    TOOL_UI('variety', "cab_franc");
+});
+</script>
+
+</head>
+<body>
+  <div id="inner-content">
+    <div id="csftool-content">
+      <div id="csftool-input"> </div>
+      <div id="csftool-display"> </div>
+      <div id="csftool-location-dialog" title="Select or create a location"></div>
+    </div>
+  </div>
+</body>
+</html>
+
