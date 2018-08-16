@@ -576,14 +576,13 @@ class Hdf5FileManager(Hdf5DataWriterMixin, Hdf5FileReader):
 
     def createDataset(self, dataset_path, numpy_array, **kwargs):
         self.assertFileWritable()
-
+        _kwargs = { }
+        _kwargs.update(kwargs)
         name, parent = self._pathToNameAndParent(self.file, dataset_path)
         shape = numpy_array.shape
-        if ('dtype' in kwargs):
-            self._createEmptyDataset_(parent, name, shape, **kwargs)
-        else:
-            self._createEmptyDataset_(parent, name, shape, numpy_array.dtype,
-                                      **kwargs)
+        dtype = _kwargs.get('dtype', numpy_array.dtype)
+        if ('dtype' in _kwargs): del _kwargs['dtype']
+        self._createEmptyDataset_(parent, name, shape, dtype, **_kwargs)
         self._registerDatasetName(dataset_path)
         dataset = self._updateDataset_(parent, name, 
                       self._processDataIn(dataset_path, numpy_array, **kwargs), 
@@ -593,13 +592,12 @@ class Hdf5FileManager(Hdf5DataWriterMixin, Hdf5FileReader):
     def createEmptyDataset(self, dataset_path, shape, dtype, fill_value=None,
                                  **kwargs):
         self.assertFileWritable()
-
-        kwargs['dtype'] = dtype 
-        if 'fillvalue' is not None:
-            kwargs['fillvalue']  = fill_value
-
+        _kwargs = { }
+        _kwargs.update(kwargs)
+        if 'fillvalue' is not None: _kwargs['fillvalue']  = fill_value
         name, parent = self._pathToNameAndParent(self.file, dataset_path)
-        dataset = self._createDataset_(parent, name, shape, **kwargs)
+        dataset = \
+            self._createEmptyDataset_(parent, name, shape, dtype, **_kwargs)
         self._registerDatasetName(dataset)
         return dataset
 

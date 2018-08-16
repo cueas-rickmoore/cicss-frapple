@@ -1,7 +1,9 @@
 
 ;(function(jQuery) {
 
-var adjustTimeZone = function(date_value) { return new Date(date_value.toISOString().split('T')[0]+'T12:00:00-04:30'); }
+var adjustTimeZone = function(date_value) {
+    return new Date(date_value.toISOString().split('T')[0]+'T12:00:00-04:30');
+}
 
 var dateToDateObject = function(date_value) {
     if (date_value instanceof Date) { return adjustTimeZone(date_value);
@@ -9,7 +11,9 @@ var dateToDateObject = function(date_value) {
     } else { return new Date(date_value+'T12:00:00-04:30'); }
 }
 
-var logObjectAttrs = function(obj) { jQuery.each(obj, function(key, value) { console.log("    ATTRIBUTE " + key + " = " + value); }); }
+var logObjectAttrs = function(obj) {
+    jQuery.each(obj, function(key, value) { console.log("    ATTRIBUTE " + key + " = " + value); });
+}
 
 var ChartTypeInterface = {
     callback: null,
@@ -101,7 +105,9 @@ var DateInterface = {
         }
     },
 
-    execCallback: function(ev, data) { if (this.initialized) { if (ev in this.callbacks) { var result = this.callbacks[ev](ev, data); } } },
+    execCallback: function(ev, data) {
+        if (this.initialized) { if (ev in this.callbacks) { var result = this.callbacks[ev](ev, data); } }
+    },
 
     init: function(anchor, datepicker_input) {
         // id of input element used to communicate with jQuery Datepicker
@@ -121,9 +127,6 @@ var DateInterface = {
             changeYear: this.year_menu,
             dateFormat: this.date_format,
 			gotoCurrent: true,
-            onChangeMonthYear: function(year, month, datepicker) {
-                console.log("datepicker.onChangeMonthYear : " + DateInterface.selected.getFullYear() + " : " + year);
-            },
             onSelect: function(date_text, datepicker) {
                 DateInterface.selected = dateToDateObject(date_text);
                 DateInterface.execCallback('dateChanged', date_text);
@@ -146,11 +149,13 @@ var DateInterface = {
         jQuery(this.datepicker_input).datepicker(options);
         this.initialized = true;
         jQuery(this.datepicker).hide();
-        jQuery(this.datepicker_input).change(function () { DateInterface.execCallback("dateChanged", this.value); });
-        jQuery("#ui-datepicker-div .ui-datepicker-header .ui-datepicker-title .ui-datepicker-year").change(
-               function () { console.log("#ui-datepicker-year.change :: " + this.value);
-                             //DateInterface.execCallback("yearChanged", this.value);
+        jQuery(this.datepicker_input).change(function () {
+            DateInterface.execCallback("dateChanged", this.value);
         });
+        //jQuery("#ui-datepicker-div .ui-datepicker-header .ui-datepicker-title .ui-datepicker-year").change(
+        //       function () { console.log("#ui-datepicker-year.change :: " + this.value);
+                             //DateInterface.execCallback("yearChanged", this.value);
+        //});
 
         this.initialized = true;
         if (this.selected != null) { this.select(this.selected);
@@ -200,6 +205,7 @@ var LocationInterface = {
             if (jQuery.type(callback) !== 'undefined') {
                 var loc_obj = loc_arg;
                 if (jQuery.type(loc_obj) === 'undefined') { loc_obj = this.selected; }
+                logObjectAttrs(loc_obj);
                 callback(ev, loc_obj);
                 return true;
             } else { return false; }
@@ -214,7 +220,9 @@ var LocationInterface = {
 
         if (this.selected) { this.update(this.selected); }
         jQuery(change_button).button( { label: "Change Location", } );
-        jQuery(change_button).click(function() { LocationInterface.execCallback("locationChangeRequest"); });
+        jQuery(change_button).click(function() {
+               LocationInterface.execCallback("locationChangeRequest");
+        });
         this.initialized = true;
         return this;
     },
@@ -232,15 +240,21 @@ var LocationInterface = {
         var changed = false;
         if (this.selected == null || this.locationsAreDifferent(selected,this.selected)) {
             if (this.initialized) { this.update(selected); }
-            this.ui_manager.locationChanged(loc_obj);
-            if (selected && exec_callback !== false) { this.execCallback("locationChanged", jQuery.extend({}, selected)); }
+            if ("variety" in loc_obj) { this.ui_manager.variety_ui.select(loc_obj.variety, false); }
+            //this.ui_manager.locationChanged(loc_obj);
+            if (selected && exec_callback !== false) {
+                this.execCallback("locationChanged", jQuery.extend({}, selected));
+            }
             this.selected = selected;
         } else if (selected.key != this.selected.key) { // location key was changed but not location data
             this.selected.key = selected.key;
         }
     },
 
-    setDefault: function(loc_obj) { this.default_location = jQuery.extend({}, loc_obj); },
+    setDefault: function(loc_obj) {
+        logObjectAttrs(loc_obj);
+        this.default_location = jQuery.extend({}, loc_obj);
+    },
 
     update: function(loc_obj) {
         var address = null;
@@ -289,7 +303,8 @@ var VarietyInterface = {
         this.anchor = variety_anchor;
         this.input_checked = 'input[name="' + variety_inputs + '"]:checked';
         this.input_selector = 'input[name="' + variety_inputs + '"][value="{{ variety }}"]';
-        jQuery.each(document.getElementsByName(variety_inputs), function () { this.addEventListener("click", varietyChangeRequest); });
+        jQuery.each(document.getElementsByName(variety_inputs),
+               function () { this.addEventListener("click", varietyChangeRequest); });
         if (this.selected) { this.toggle(this.selected); }
         this.initialized = true;
         return this;
@@ -299,7 +314,6 @@ var VarietyInterface = {
 
     select: function(variety, exec_callback) {
         if (this.initialized) {
-            // variety == selected when called by "click" event listener, toggle not necessary
             if (this.selected) {
                 if (variety != this.selected) {
                     this.toggle(variety);
@@ -316,7 +330,9 @@ var VarietyInterface = {
 
     toggle: function(variety) {
         var selected = jQuery(this.input_checked).val();
-        if (selected != variety) { jQuery(this.input_selector.replace('{{ variety }}',selected)).prop("checked", false); }
+        if (selected != variety) {
+            jQuery(this.input_selector.replace('{{ variety }}',selected)).prop("checked", false);
+        }
         jQuery(this.input_selector.replace('{{ variety }}',variety)).prop("checked", true);
         this.selected = jQuery(this.input_checked).val();
     },
@@ -343,7 +359,7 @@ var InterfaceManager = {
           '<span class="csftool-em">Apple Variety</span>',
           '<form id="variety-selector">',
           '<input type="radio" name="select-apple-variety" id="empire" value="empire"></input>&nbsp;Empire<br/>',
-          '<input type="radio" name="select-apple-variety" id="mac_geneva" value="mac_geneva"></input>&nbsp;MacIntosh (Geneva)<br/>',
+          '<input type="radio" name="select-apple-variety" id="mac_geneva" value="mac_geneva"></input>&nbsp;MacIntosh<br/>',
           '<input type="radio" name="select-apple-variety" id="red_delicious" value="red_delicious"></input>&nbsp;Red Delicious',
           '</form>',
           '</div>',
@@ -400,10 +416,10 @@ var AppleFrostUIProxy = {
 
   init: function(dom_element, options) {
     this.ui_manager = InterfaceManager.installHtml(dom_element);
-    this.variety_ui = this.ui_manager.variety_ui;
     this.chart_ui = this.ui_manager.chart_ui;
     this.date_ui = this.ui_manager.date_ui;
     this.location_ui = this.ui_manager.location_ui;
+    this.variety_ui = this.ui_manager.variety_ui;
     var self = this;
     if (options) { jQuery.each(options, function(i,option) { self.option.apply(self, option); }); }
     this.ui_manager.initInterfaces();

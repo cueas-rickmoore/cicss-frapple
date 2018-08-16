@@ -10,10 +10,12 @@ function loadCsfTool() {
     script.setAttribute("type", "text/javascript");
     script.setAttribute("src", CSFTOOL_URL + "/js/load-dependencies.js");
     window.document.body.appendChild(script);
+    console.log("load-dependencies.js added to body");
 
     script = document.createElement('script');
     script.setAttribute("type", "text/javascript");
     script.setAttribute("src", CSFTOOL_URL + "/js/toolinit.js");
     window.document.body.appendChild(script);
+    console.log("toolinit.js added to body");
 }
 

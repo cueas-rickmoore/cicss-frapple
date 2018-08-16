@@ -72,7 +72,7 @@ def copyHdf5DategridFile(reader, builder, fileattrs, datasets, exclusions=None,
                 builder.setDatasetAttributes(path, **datasets[path])
                 builder.close()
             if not ('provenance' in path):
-                print '    calling dataset sanitizer'
+                if debug: print '    calling dataset sanitizer'
                 sanitizeDataset(builder, path, debug)
 
     reader.close()

@@ -60,7 +60,7 @@ CHILL.getActiveModels = getActiveModels
 ConfigObject('maps', CHILL, 'no_data', 'options', 'titles')
 
 # minimum percent of nodes with accumulated chill
-CHILL.maps.min_percent_nodes = 0.05
+CHILL.maps.min_percent_nodes = 0.025
 CHILL.maps.min_chill_to_post = 100.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -70,16 +70,23 @@ CHILL.maps.min_chill_to_post = 100.
 #chill_contours = (250,375,500,625,750,875,1000,1125,1250,1375,1500,1625,1750,1825,2000)
 #chill_contours = (250,500,750,1000,1250,1500,1750,2000)
 chill_contours = tuple(range(200,1400,100))
-CHILL.maps.no_data.accumulated = { 'reason':'No chill has accumulated.', 
-                            'area_template':'NortheastNoData_template.png',
-                            'create_with':'NortheastNoData_template.png',
-                            }
+CHILL.maps.no_data.accumulated = { 'area_template':'NortheastNoData_template.png',
+                                   'create_with':'NortheastNoData_template.png',
+                                   'title_x':0.45, 'title_y':0.78, 
+                                   'title_va':'top', 'title_box_alpha':0.0,
+                                   'title_box_alpha':0.0,
+                                   'shape_resolution':None,
+                                 }
 CHILL.maps.options.accumulated = { 'map_type':'chill', 'area':'northeast',
                                    'area_template':'NortheastEmpty_template.png',
                                    'mask_coastlines':False,
                                    'shape_resolution':None,
                                    'colorbar':True, 'cmap':'jet_r',
+                                   #'over_color':'#CD853F', # tan
+                                   #'over_color':'#9370DB', # mdeium purple
                                    'over_color':'#9999FF', # lilac purple
+                                   #'over_color':'#6A5ACD', # lilac purple
+                                   #'vmin':250.,'vmax':2000,
                                    'contourbounds':chill_contours,
                                    'title_x':0.45, 'title_y':0.78, 
                                    'title_va':'top', 'title_box_alpha':0.0,
@@ -90,7 +97,6 @@ del chill_contours
 
 CHILL.maps.no_data.gdd = { 'template':'NortheastNoData_template.png',
                            'create_with':'NortheastNoData_template.png',
-                           'reason':'Minimum chill requirement for this variety has not been met.', 
                            'title_x':0.45, 'title_y':0.78, 
                            'title_va':'top', 'title_box_alpha':0.0,
                            'title_box_alpha':0.0,

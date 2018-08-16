@@ -1,4 +1,3 @@
-
 ;jQuery(document).ready( function () {
     FRAPPLE.wait_widget.widget_anchor = '#csftool-display';
     FRAPPLE.wait_widget.createDialog({ center_on: "#csftool-display", });
@@ -7,7 +6,6 @@
         FRAPPLE.display("draw");
         FRAPPLE.wait_widget.stop(true);
     });
-
     var options = [
           [ 'varieties', FRAPPLE.varieties ],
           [ 'chart', 'default', FRAPPLE.default_chart ],
@@ -20,7 +18,6 @@
           ];
     FRAPPLE.ui = jQuery(FRAPPLE.ui_anchor).AppleFrostUserInterface(options);
     FRAPPLE.ui.option('location', 'default',  FRAPPLE.locations.state);
-
     options = [ [ 'chart_type', FRAPPLE.ui.option("chart") ],
                 [ 'default', "trend" ],
                 [ 'height', 450 ],
@@ -37,18 +34,18 @@
     FRAPPLE.display = result[1];
     FRAPPLE.display("bind", "drawing_complete", function(ev, drawn) { FRAPPLE.wait_widget.stop(true); });
     FRAPPLE.displayReady();
+    console.log("TOOLINIT :: DISPLAY :: drawn : " + FRAPPLE.display("drawn"));
+    FRAPPLE.display("bind", "series_drawn", function(ev, info) { console.log("EVENT :: SERIES DRAWN : " + info); });
     FRAPPLE.display("newChart");
     if (FRAPPLE.wait_widget.isavailable("mint") && FRAPPLE.wait_widget.isavailable("risk")) { FRAPPLE.display("draw"); }
-
     FRAPPLE.dates.addListener("seasonChanged", function(ev, year) { FRAPPLE.uploadAllData(); });
     FRAPPLE.dates.addListener("viewChanged", function(ev, view_obj) {
         if (FRAPPLE.display('chart_type') == "trend") {
             FRAPPLE.display('view', view_obj);
-            FRAPPLE.display('draw');
+            if (FRAPPLE.allDataAvailable()) { FRAPPLE.display('draw'); }
         }
     });
-
-    FRAPPLE.locations.addListener("doiChanged", function(ev, doi) { FRAPPLE.dates.doi = doi; });
+    FRAPPLE.locations.addListener("doiChanged", function(ev, doi) { FRAPPLE.dates.doi = doi; FRAPPLE.display("redraw"); });
     FRAPPLE.locations.addListener("locationChanged", function(ev, changed) {
         var loc_obj = changed[1];
         FRAPPLE.logObjectAttrs(loc_obj);
@@ -59,18 +56,16 @@
         FRAPPLE.display("remove");
         FRAPPLE.uploadLocationData();
     });
-
     var ui = FRAPPLE.ui;
     ui.option("bind", "chartChangeRequest", function(ev, chart_type) {
+        console.log("CALLBACK :: ui.chartChangeRequest executed : " + chart_type);
         FRAPPLE.display("view", FRAPPLE.dates.view(chart_type));
         FRAPPLE.display("chart_type", chart_type);
         FRAPPLE.display("redraw");
     });
-    ui.option("bind", "dateChanged", function(ev, doi) {
-        FRAPPLE.dates.doi = doi;
-        FRAPPLE.locations.doi = doi;
-    });
+    ui.option("bind", "dateChanged", function(ev, doi) { FRAPPLE.locations.doi = doi; });
     ui.option("bind", "locationChanged", function(ev, loc_obj) {
+        FRAPPLE.logObjectAttrs(loc_obj);
         if (jQuery.type(loc_obj.address) === 'undefined') {
             console.log("BAD LOCATION :: " + loc_obj.lat + " , " + loc_obj.lng);
         } else {
@@ -81,18 +76,17 @@
     });
     ui.option("bind", "locationChangeRequest", function(ev, loc_obj) { FRAPPLE.map_dialog("open", loc_obj.id); });
     ui.option("bind", "varietyChanged", function(ev, variety) { FRAPPLE.locations.variety = variety; });
-
-    // create the map dialog last because the PHP site takes it's time
-    // loading the Google Maps scripts
-    if (typeof NO_MAP_DAILOG === 'undefined') {
+    if (typeof google !== 'undefined') {
         var options = { width:600, height:500, google:google, default:FRAPPLE.locations.state };
         jQuery("#csftool-input").append(FRAPPLE.map_dialog_container);
         jQuery(FRAPPLE.map_dialog_anchor).CsfToolLocationDialog(options);
         var map_dialog = jQuery(FRAPPLE.map_dialog_anchor).CsfToolLocationDialog();
         FRAPPLE.map_dialog = map_dialog;
         map_dialog("locations", FRAPPLE.locations.locations);
-        map_dialog("bind", "close", function(ev, context) { if (context.selected_location != context.initial_location) { FRAPPLE.ui.option("location", context.selected_location); } });
+        map_dialog("bind", "close", function(ev, context) { 
+            FRAPPLE.locations.mergeLocations(context.all_locations)
+            if (context.selected_location.id != context.initial_location.id) { FRAPPLE.ui.option("location", context.selected_location); }
+        });
     }
-
 });
 

@@ -86,6 +86,7 @@ FRAPPLE = {
 
     dataAvailable: function(data_type) {
         this.wait_widget.available(data_type);
+
         if (data_type == 'stages' || data_type == 'days') {
             index = this.stage_pending.indexOf(data_type);
             if (index > -1) {
@@ -110,9 +111,8 @@ FRAPPLE = {
     },
 
     forecast: function(data_type, view) {
-        var _view; if (typeof view !== 'undefined') { _view = view; } else { _view = this.dates.view; }
-        var fcast_view = this.dates.forecastView(_view);
-        if (fcast_view) { return this.genDataPairs(data_type, fcast_view.start, fcast_view.end); } else { return; }
+        var fcast_view = this.dates.forecastView(view);
+        if (typeof fcast_view !== 'undefined') { return this.genDataPairs(data_type, fcast_view.start, fcast_view.end); } else { return; }
     },
 
     fullview: function(data_type, view) {
@@ -134,6 +134,7 @@ FRAPPLE = {
             end_index = raw_dates.indexOf(end.getTime());
             start_index = raw_dates.indexOf(start.getTime());
         }
+
         var pairs = [ ];
         for (var i=start_index; i <= end_index; i++) { pairs.push([ raw_dates[i], raw_data[i] ]); }
         return pairs;
@@ -341,7 +342,8 @@ function ToolDatesManager(tool) {
         set:function(new_date) {
             if (jQuery.type(new_date) === 'string' || new_date instanceof Date) {
                 var fcast_start = this.dateToDateObj(new_date);
-                if (fcast_start <= this.season_end) { this._dates_["fcast_start"] = fcast_start; } else { this._dates_["fcast_start"] = null; }
+                if (fcast_start <= this.season_end) { this._dates_["fcast_start"] = fcast_start;
+                } else { this._dates_["fcast_start"] = null; }
             } else { this._dates_.fcast_start = null; }
         }
     });
@@ -351,7 +353,7 @@ function ToolDatesManager(tool) {
         get:function() { return this._dates_["last_obs"]; },
         set:function(new_date) {
             var last_obs = this.dateToDateObj(new_date);
-            if (last_obs < this.season_end) { this._dates_["last_obs"] = last_obs; } else { this._dates_["last_obs"] = this.season_end; }
+            if (last_obs < this.season_end) { this._dates_.last_obs = last_obs; } else { this._dates_.last_obs = this.season_end; }
         }
     });
 
@@ -363,6 +365,11 @@ function ToolDatesManager(tool) {
             if (this._dates_.last_obs instanceof Date) { return this._dates_.last_obs; }
             return this.season_end;
         },
+        set:function(new_date) {
+            var last_valid = this.dateToDateObj(new_date);
+            if (last_valid < this.season_end) { this._dates_.last_valid = last_valid;
+            } else { this._dates_.last_valid = this.season_end; }
+        }
     });
 
     Object.defineProperty(this, "num_stages", { configurable:false, enumerable:false, get:function() { return this._stages_.length; } });
@@ -425,18 +432,21 @@ ToolDatesManager.prototype.dateToDateObj = function(date_value) {
 ToolDatesManager.prototype.dateToString = function(date_value) { if (jQuery.type(date_value) === 'string') { return date_value } else { return this.dateToDateObj(date_value).toISOString().split("T")[0]; } }
 ToolDatesManager.prototype.dateToTime = function(date_value) { if (date_value instanceof Date) { return date_value.getTime(); } else { return new Date(date_value+'T12:00:00-04:30').getTime(); } }
 ToolDatesManager.prototype.dayToDateObj = function(day) {
-    if (day[0] >= this.season_start_day[0]) { return this.adjustTimeZone(new Date(this.season-1,day[0]-1,day[1]));
-    } else { return this.adjustTimeZone(new Date(this.season,day[0]-1,day[1])); }
+    if (day[0] >= this._dates_.season_start_day[0]) { return this.adjustTimeZone(new Date(this._dates_.season-1,day[0]-1,day[1]));
+    } else { return this.adjustTimeZone(new Date(this._dates_.season,day[0]-1,day[1])); }
 }
 
 ToolDatesManager.prototype.diffInDays = function(date_1, date_2) { return Math.ceil(Math.abs(date_2.getTime() - date_1.getTime()) / this.ms_per_day); }
 
 ToolDatesManager.prototype.forecastView = function(view) {
-    if (this._dates_.fcast_start) { 
+    if (typeof this._dates_.fcast_start !== 'undefined' && this._dates_.fcast_start != null) {
+        var fcast_end = this._dates_.fcast_end;
         var fcast_start = this._dates_.fcast_start;
-        var _view = view; if (typeof view === 'undefined') { _view = this.view; }
-        if (fcast_start >= _view.start && fcast_start <= _view.end) {
-            if (this._dates_.fcast_end <= _view.end) { 
+
+        var _view = view;
+        if (typeof view === 'undefined') { _view = this.view; }
+        if (fcast_start <= _view.end) {
+            if (fcast_end <= _view.end) {
                 return { doi:_view.doi, end:this._dates_.fcast_end, start:fcast_start };
             } else { return { doi:_view.doi, end:_view.end, start:fcast_start }; }
         }
@@ -459,21 +469,24 @@ ToolDatesManager.prototype.indexOf = function(date_) {
 }
 
 ToolDatesManager.prototype.init = function(season, season_start_day, season_end_day, default_doi, doi) {
-    this.season_start_day = season_start_day;
-    this.season_end_day = season_end_day;
-    this.season = season;
-    if (jQuery.type(default_doi) === 'string') { this.default_doi = this.dateToDateObj(default_doi);
-    } else  if (jQuery.isArray(default_doi)) { this.default_doi = this.dayToDateObj(default_doi); }
+    this._dates_.season_start_day = season_start_day;
+    this._dates_.season_end_day = season_end_day;
+    this._dates_.season = season;
+    this._dates_.season_end = this.dayToDateObj(season_end_day);
+    this._dates_.season_start = this.dayToDateObj(season_start_day);
+    this._dates_.season_spread = (season-1).toString() + "-" + season.toString();
+    if (jQuery.type(default_doi) === 'string') { this._dates_.default_doi = this.dateToDateObj(default_doi);
+    } else  if (jQuery.isArray(default_doi)) { this._dates_.default_doi = this.dayToDateObj(default_doi); }
     if (jQuery.type(doi) === 'string') { this._dates_.doi = this.dateToDateObj(doi);
-    } else if (jQuery.isArray(doi)) { this.doi = this.dayToDateObj(doi); }
+    } else if (jQuery.isArray(doi)) { this._dates_.doi = this.dayToDateObj(doi); }
     this._updateView_();
 }
 
 ToolDatesManager.prototype.observedView = function(view) {
     var _view = view; if (typeof view === 'undefined') { _view = this.view; }
-    if (this._dates_.fcast_start) { 
+    if (typeof this._dates_.fcast_start !== 'undefined' && this._dates_.fcast_start != null) {
         var fcast_start = this._dates_.fcast_start;
-        if (fcast_start >= _view.start && fcast_start <= _view.end) {
+        if (fcast_start <= _view.end && fcast_start >= _view.start) {
             return { doi:this.doi, end:this.pastDate(fcast_start), start:_view.start };
         }
     }
@@ -482,8 +495,8 @@ ToolDatesManager.prototype.observedView = function(view) {
 
 ToolDatesManager.prototype.pastDate = function(from_date, days_in_past) {
     if (typeof days_in_past !== 'undefined') { 
-        return new Date( from_date.getTime() - days_in_past*this.ms_per_day);
-    } else { return new Date( from_date.getTime() - this.ms_per_day); }
+        return new Date(from_date.getTime() - days_in_past*this.ms_per_day);
+    } else { return new Date(from_date.getTime() - this.ms_per_day); }
 }
 
 ToolDatesManager.prototype.slice = function(start, end) {
@@ -503,18 +516,29 @@ ToolDatesManager.prototype.sliceByIndex = function(start, end) {
 
 ToolDatesManager.prototype.update = function(dates_obj) {
     var changed = [];
-    if ("last_obs" in dates_obj && dates_obj["last_obs"] != this._dates_.last_obs) { this._dates_.last_obs = dates_obj["last_obs"]; changed.push("last_obs"); }
+    FRAPPLE.logObjectAttrs(dates_obj);
+    if (typeof dates_obj.last_obs !== 'undefined') {
+        var last_obs = this.dateToDateObj(dates_obj.last_obs);
+        if (last_obs != this._dates_.last_obs) { this._dates_.last_obs = last_obs; changed.push("last_obs"); }
+    }
     if (typeof dates_obj.fcast_start !== 'undefined') {
-        if (dates_obj.fcast_start != this._dates_.fcast_start) { this._dates_.fcast_start = dates_obj.fcast_start; changed.push("fcast_start"); }
-    } else { this._dates_.fcast_start = null; }
+        var fcast_start = this.dateToDateObj(dates_obj.fcast_start);
+        if (fcast_start != this._dates_.fcast_start) { this._dates_.fcast_start = fcast_start; changed.push("fcast_start"); }
+    } else { this._dates_.fcast_start = null; changed.push("fcast_start"); }
+
     if (typeof dates_obj.fcast_end !== 'undefined') {
-        if (dates_obj.fcast_end != this._dates_.fcast_end) { this._dates_.fcast_end = dates_obj.fcast_end; changed.push("fcast_end"); }
-    } else { this._dates_.fcast_end = null; }
-    if (typeof dates_obj.last_valid !== 'undefined') { if (dates_obj.last_valid != this._dates_.last_valid) { this._dates_.last_valid = dates_obj.last_valid; changed.push("last_valid"); } }
-    //if (this.last_valid == null) { this._dates_.last_valid = this.last_obs; } }
-    if ("season" in dates_obj && dates_obj["season"] != this.season) { this._dates_.season = dates_obj["season"]; changed.push("season"); }
-    if ("season_end" in dates_obj && dates_obj["season_end"] != this.season_end) { this._dates_.season_end = dates_obj["season_end"]; changed.push("season_end"); }
-    if ("season_start" in dates_obj && dates_obj["season_start"] != this.season_start) { this._dates_.season_start = dates_obj["season_start"]; changed.push("season_start"); }
+        var fcast_end = this.dateToDateObj(dates_obj.fcast_end);
+        if (fcast_end != this._dates_.fcast_end) { this._dates_.fcast_end = fcast_end; changed.push("fcast_end"); }
+    } else { this._dates_.fcast_end = null; changed.push("fcast_end");}
+
+    if (typeof dates_obj.last_valid !== 'undefined') {
+        var last_valid = this.dateToDateObj(dates_obj.last_valid);
+        if (last_valid != this._dates_.last_valid) { this._dates_.last_valid = last_valid; changed.push("last_valid"); }
+    }
+
+    if (typeof dates_obj.season !== 'undefined' && dates_obj.season != this.season) { this._dates_.season = dates_obj.season; changed.push("season"); }
+    if (typeof dates_obj.season_start !== 'undefined' && dates_obj.season_start != this.season_start) { this._dates_.season_start = dates_obj.season_start; changed.push("season_start"); }
+    if (typeof dates_obj.season_end !== 'undefined' && dates_obj.season_end != this.season_end) { this._dates_.season_end = dates_obj.season_end; changed.push("season_end"); }
     if (changed.length > 0) { this._updateView_(); if ("datesChanged" in this._listeners_) { this._listeners_.datesChanged("datesChanged",changed); } }
 }
 
@@ -542,19 +566,17 @@ ToolDatesManager.prototype.uploadStageDates = function(loc_obj) {
 }
 
 ToolDatesManager.prototype.view = function(view_type) {
-    var season_end, season_start, view_end, view_start;
-    if (typeof this._dates_.season_end === 'string') { season_end = this.dateToDateObj(this._dates_.season_end); } else { season_end = this._dates_.season_end; }
-    if (typeof this._dates_.season_start === 'string') { season_start = this.dateToDateObj(this._dates_.season_start); } else { season_start = this._dates_.season_start; }
-    if (view_type == 'data') { return { doi:this._dates_.doi, end:season_end, start:season_start }; }
-    
-    var view = { doi:this._dates_.doi, end:null, season_end:season_end, season_start:season_start, start:null };
+    // view types are 'season', 'trend', 'data'
+    var doi = this._dates_.doi
+    var season_end = this._dates_.season_end;
+    var season_start = this._dates_.season_start;
+    var view = { doi:doi, end:season_end, start:season_start };
     if (view_type == 'season') {
-        if (typeof this._dates_.last_valid === 'string') { view.end = this.dateToDateObj(this._dates_.last_valid); } else { view.end = this._dates_.last_valid; }
-        view.start = season_start;
-    } else if (view_type == 'trend') {
-        if (typeof this._dates_.view_end === 'string') { view.end = this.dateToDateObj(this._dates_.view_end); } else { view.end = this._dates_.view_end; }
-        if (typeof this._dates_.view_start === 'string') { view.start = this.dateToDateObj(this._dates_.view_start); } else { view.start = this._dates_.view_start; }
+        view = { doi:doi, end:this._dates_.last_valid, season_end:season_end, season_start:season_start, start:season_start };
+    } else if (view_type == 'trend') { 
+        view = { doi:doi, end:this._dates_.view_end, season_end:season_end, season_start:season_start, start:this._dates_.view_start };
     }
+    this.tool.logObjectAttrs(view);
     return view;
 }
 
@@ -610,7 +632,7 @@ function ToolLocationsManager(tool) {
         get:function() { return this._state_.variety; },
         set:function(variety) { 
             if (variety != this._state_.variety) { this._state_.variety = variety;
-                if ("varietyChanged" in this._listeners_) { this._listeners_.varietyChanged("varietyChanged",jQuery.extend({},variety)); }
+                if ("varietyChanged" in this._listeners_) { this._listeners_.varietyChanged("varietyChanged",variety); }
             }
         }
     });
@@ -688,8 +710,24 @@ ToolLocationsManager.prototype.init = function(locations, default_location, defa
     }
 }
 
+ToolLocationsManager.prototype.mergeLocations = function(locations) {
+    var new_loc;
+    var empty_loc = { address:null, doi:null, id:null, lat:null, lng:null, variety:null };
+    var self = this;
+    jQuery.each(locations, function(id, loc_obj) {
+        if (!(self._locations_.hasOwnProperty(id))) {
+           new_loc = jQuery.extend({}, empty_loc, loc_obj)
+           if (new_loc.doi == null) { new_loc.doi = self._state_.doi; }
+           if (new_loc.variety == null) { new_loc.variety = self._state_.variety; }
+           self._locations_[id] = new_loc;
+        }
+    });
+}
+
 ToolLocationsManager.prototype.update = function(new_loc, fire_event) {
     var changed = [];
+    this.tool.logObjectAttrs(new_loc);
+
     if (!('doi' in new_loc) || new_loc.doi == null) { new_loc.doi = this._state_.doi }
     if (!('variety' in new_loc) || new_loc.variety == null) { new_loc.variety = this._state_.variety }
     var result = this.validate(new_loc);
@@ -732,7 +770,9 @@ ToolLocationsManager.prototype.validate = function(new_loc) {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 var initializeToolManager = function() {
-    jQuery.ajaxPrefilter(function(options, original_request, jqXHR) { jqXHR.original_request = original_request; });
+    jQuery.ajaxPrefilter(function(options, original_request, jqXHR) {
+        jqXHR.original_request = original_request;
+    });
 
     FRAPPLE.wait_widget = jQuery().CsfToolWaitWidget();
 

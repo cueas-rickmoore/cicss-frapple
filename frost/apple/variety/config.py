@@ -34,7 +34,7 @@ PROVENANCE_NAMES_BASE = ['obs_date', 'processed']
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-VARIETY = ConfigObject('variety', None, 'plots.options')
+VARIETY = ConfigObject('variety', None)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # provenance record configuration
@@ -76,27 +76,27 @@ del empty, formats, names
 
 VARIETY.map_types = ('gdd','kill','stage')
 
-ConfigObject('maps', VARIETY, 'blank', 'no_data', 'options', 'titles')
+ConfigObject('maps', VARIETY, 'no_data', 'options', 'titles')
 
 VARIETY.maps.min_gdd_to_post = 20.
-VARIETY.maps.max_valid_nodes = 48433
-VARIETY.maps.min_percent_nodes = 0.05
+VARIETY.maps.min_percent_nodes = 0.025
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Growing Degree Day
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-VARIETY.maps.no_data.gdd = { 'area_template':'NortheastNoData_template.png',
-                    'create_with':'NortheastNoData_template.png',
-                    'reason':'Chilling requirement\nhas not been met.',
-                    }
-
-VARIETY.maps.titles.gdd =\
-'%(variety)s\nAccumulated Growing Degree Days'
 
 gdd_contours = (25,125,225,325,475,525,625,725)
 #    (250,375,500,625,750,875,1000,1125,1250,1375,1500,1625,1750,1825,2000)
-
+VARIETY.maps.no_data.gdd = { 'area_template':'NortheastNoData_template.png',
+                             'create_with':'NortheastNoData_template.png',
+                             'mask_coastlines':False,
+                             'shape_resolution':None,
+                             'title_x':0.45, 'title_y':0.78, 
+                             'title_box_alpha':0.0,
+                           }
+VARIETY.maps.titles.gdd =\
+'%(variety)s\nAccumulated Growing Degree Days'
 VARIETY.maps.options.gdd = { 'map_type':'gdd', 'area':'northeast',
                              'area_template':'NortheastEmpty_template.png',
                              'mask_coastlines':False,
@@ -104,6 +104,7 @@ VARIETY.maps.options.gdd = { 'map_type':'gdd', 'area':'northeast',
                              'colorbar':True, 'cmap':'jet',
                              'contourbounds':gdd_contours,
                              'title_x':0.45, 'title_y':0.78, 
+                             #'titleyoffset':0.125, 'title_box_alpha':0.0,
                              'title_box_alpha':0.0,
                            }
 
@@ -121,16 +122,13 @@ kill_map_colors = tuple([kill[1] for kill in APPLE_KILL_COLORS])
 kill_color_key = tuple([kill[0] for kill in APPLE_KILL_COLORS])
 kill_indexes = tuple(range(len(APPLE_KILL_COLORS)+1,1))
 
-VARIETY.maps.blank.kill = { 'area_template':'NortheastEmpty_template.png',
-                    'create_with':'NortheastEmpty_template.png',
-                    'reason':'No Kill Detected.',
-                    }
-
 VARIETY.maps.no_data.kill = { 'area_template':'NortheastNoData_template.png',
-                    'create_with':'NortheastNoData_template.png',
-                    'reason':'Buds still dormant.',
-                    }
-
+                              'create_with':'NortheastNoData_template.png',
+                              'mask_coastlines':False,
+                              'shape_resolution':None,
+                              'title_x':0.45, 'title_y':0.78, 
+                              'title_box_alpha':0.0,
+                            }
 VARIETY.maps.options.kill = { 'map_type':'kill', 'area':'northeast',
                               'area_template':'NortheastEmpty_template.png',
                               'mask_coastlines':False,
@@ -139,13 +137,13 @@ VARIETY.maps.options.kill = { 'map_type':'kill', 'area':'northeast',
                               'colors':kill_map_colors,
                               'cbarsettings':[0.27, 0.08, 0.50, 0.04],
                               'cbarlabelsize':8,
-                 
                               'marker':'o', 'marker_size':5,
                               'contourbounds':APPLE_KILL_PROBS,
                               'markercolors':kill_map_colors,
                               'keylabels':kill_color_key,
                               'extend':'neither',
                               'title_x':0.45, 'title_y':0.78, 
+                              #'titlexoffset':0.15, 'titleyoffset':0.125, 
                               'title_box_alpha':0.0,
                               'linewidths':0,
                             }
@@ -153,6 +151,32 @@ VARIETY.maps.titles.kill = '%(variety)s\nKill Probability'
 
 del kill_color_key, kill_map_colors, kill_indexes
 del kill_name_map
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# chill mask
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+VARIETY.maps.no_data.mask = { 'area_template':'NortheastNoData_template.png',
+                              'create_with':'NortheastNoData_template.png',
+                              'mask_coastlines':False,
+                              'shape_resolution':None,
+                              'title_x':0.45, 'title_y':0.78, 
+                              'title_box_alpha':0.0,
+                            }
+VARIETY.maps.options.mask = { 'map_type':'mask', 'area':'northeast',
+                              'area_template':'NortheastEmpty_template.png',
+                              'mask_coastlines':False,
+                              'shape_resolution':None,
+                              'colorbar':False,
+                              'marker':'+', 'marker_size':3,
+                              'markercolors':('r','o','b'),
+                              'extend':'neither',
+                              'title_x':0.45, 'title_y':0.78, 
+                              #'titlexoffset':0.15, 'titleyoffset':0.125, 
+                              'title_box_alpha':0.0,
+                              'linewidths':0,
+                            }
+VARIETY.maps.titles.mask = '%(variety)s\nChill Mask'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # phenological stage
@@ -170,9 +194,13 @@ stage_map_colors = tuple([color for color in stage_color_map.values()[:-1]])
 
 VARIETY.maps.no_data.stage = { 'area_template':'NortheastDormant_template.png',
                                'create_with':'NortheastDormant_template.png',
-                               'reason':'Buds still dormant.',
-                               }
-
+                               'mask_coastlines':False,
+                               'shape_resolution':None,
+                               #'draw_map_border':False, 'logo':None,
+                               'title_x':0.45, 'title_y': 0.78,
+                               'title_va':'top', 'title_box_alpha':0.0,
+                               'title_box_alpha':0.0,
+                             }
 VARIETY.maps.options.stage = { 'map_type':'stage', 'area':'northeast',
                                'area_template':'NortheastEmpty_template.png',
                                'mask_coastlines':False,
@@ -195,7 +223,11 @@ VARIETY.maps.options.stage = { 'map_type':'stage', 'area':'northeast',
                              }
 VARIETY.maps.titles.stage = '%(variety)s\nPhenological Stages'
 
-del stage_color_map, stage_contours, stage_map_colors
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# plot options configuration
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ConfigObject('plots', VARIETY, 'options', 'titles')
 
 mint_options = {'color':'b', 'linestyle':'-', 'linewidth':2, 'label':'Min Temp'}
 stage_options = { 'color':'k', 'linestyle':':', 'markersize':3, 'linewidth':3,
@@ -204,6 +236,33 @@ VARIETY.plots.options.kill_at_stage = { 'mint':mint_options,
                                         'stage':stage_options }
 
 del mint_options, stage_options
+
+def hardtVsTempTimespan(start_date, end_date):
+    return '%s thru %s' % (start_date.strftime('%B %d, %Y'),
+                           end_date.strftime('%B %d, %Y'))
+
+VARIETY.plots.options.hardiness_vs_temp = {
+                    'plot_group':'kill.@.%(location)s',
+                    'plot_key':'Kill-vs-Hardiness-@-%(location)s',
+                    'figsize':(8,6),
+                    'temp_units':'F',
+                    'timeSpan':hardtVsTempTimespan,
+                    'colorbar':True,
+                    'colors':stage_map_colors[1:],
+                    # cbar @ [left, bottom, width, height]
+                    'cbar_alpha':0.15,
+                    #'cbarsettings':[0.13, 0.08, .76, 0.04],
+                    'cbarsettings':[0.125, 0.09, .775, 0.05],
+                    'cbarlabelsize':8,
+                    'cbarfontweight':'bold',
+                    'keylabels':APPLE_STAGE_LABELS[1:],
+                    'extend':'neither',
+                    }
+
+VARIETY.plots.titles.hardiness_vs_temp = \
+      '%(variety)s at %(location)s\nModelled Hardiness Temp vs Observed Temp'
+
+del stage_color_map, stage_contours, stage_map_colors
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 

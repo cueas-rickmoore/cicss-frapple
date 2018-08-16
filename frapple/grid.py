@@ -3,7 +3,7 @@ import os
 import datetime
 import numpy as N
 
-from atmosci.utils.timeutils import DateIterator
+from atmosci.utils.timeutils import DateIterator, asAcisQueryDate
 
 from atmosci.seasonal.grid import SeasonalGridFileReader
 from atmosci.seasonal.grid import SeasonalGridFileManager
@@ -184,35 +184,61 @@ class FrappleVarietyFileBuilder(BasicFrappleVarietyMethods,
 
     def __init__(self, filepath, variety, target_year, source, region,
                        **kwargs):
+        self.__tool = None
         #self._initAppleProject_(target_year)
         SeasonalGridFileBuilder.__init__(self, filepath, REGBASE, CONFIG, 
                                                'variety', source, target_year,
                                                region, **kwargs)
         self._initVariety_(variety)
 
+    @property
+    def tool(self):
+        return self.__tool
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    def additionalFileAttributes(self, **kwargs):
+        attrs = { }
+        attrs['target_year'] = self.target_year
+        attrs['end_date'] = asAcisQueryDate(self.end_date)
+        attrs['start_date'] = asAcisQueryDate(self.start_date)
+        attrs['num_days'] = self.num_days
+        return attrs
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    def preInitTimeAttributes(self, target_year):
+        self.__tool = self.config.tool
+        project = self.config.project
+        self.target_year = target_year
+        self.end_date = datetime.date(target_year, *project.end_day)
+        self.start_date = datetime.date(target_year-1, *project.start_day)
+        self.num_days = (self.end_date - self.start_date).days + 1
+
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     def stagesToKillTemps(self, variety, stage_data):
-        t10_kill = N.full(stage_data.shape, N.nan, dtype=float)
-        t50_kill = N.full(stage_data.shape, N.nan, dtype=float)
-        t90_kill = N.full(stage_data.shape, N.nan, dtype=float)
+        dataset = self.config.datasets.T10
+        missing = dataset.missing_packed
+        dtype = dataset.dtype_packed
+        # create empty arrays 
+        t10_kill = N.full(stage_data.shape, missing, dtype=dtype)
+        t50_kill = N.full(stage_data.shape, missing, dtype=dtype)
+        t90_kill = N.full(stage_data.shape, missing, dtype=dtype)
+
         indexes = N.where(stage_data == 0)
         if len(indexes[0]) > 0: # first day build may not have data yet
-            t10_kill[indexes] = -10.
-            t50_kill[indexes] = -15.
-            t90_kill[indexes] = -20.
-
-            for indx, stage in enumerate(variety.kill_temps):
-                indexes = N.where(stage_data == indx+1)
-                # has stage been achieved anywhere yet ?
-                if len(indexes[0]) > 0:
-                    kill_temps = stage[1]
-                    t10_kill[indexes] = kill_temps[0]
-                    t50_kill[indexes] = kill_temps[1]
-                    t90_kill[indexes] = kill_temps[2]
+            kill_temps = [ item[1]
+                           for item in self.tool.kill_temps.attrs.items() ]
+            for stage, temps in enumerate(kill_temps):
+                indexes = N.where(stage_data == stage)
+                if len(indexes[0]) > 0: # has stage been achieved anywhere ?
+                    t10_kill[indexes] = temps[0]
+                    t50_kill[indexes] = temps[1]
+                    t90_kill[indexes] = temps[2]
                 # if stage has not been achieved anywhere, subsequent
                 # stages are not possible yet
-                else: break 
+                else: break
 
         return t10_kill, t50_kill, t90_kill
     
@@ -224,4 +250,15 @@ class FrappleVarietyFileBuilder(BasicFrappleVarietyMethods,
             day = self._projectStartDay(**kwargs)
             return datetime.date(year-1, *day)
         else: return start_date
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    def _resolveDatasetChunks(self, dataset, shape, view, **kwargs):
+        chunks = dataset.get('chunks', None)
+        if chunks:
+            if 'num_days' in chunks:
+                if isinstance(chunks, tuple): chunks = list(chunks)
+                chunks[chunks.index('num_days')] = self.num_days
+            return tuple(chunks)
+        return None
 

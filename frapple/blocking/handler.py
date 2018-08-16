@@ -20,11 +20,13 @@ class AppleFrostBlockingRequestHandler(AppleFrostToolFactory,
         # initialize the factory and it's inherited config/registry
         AppleFrostToolFactory.__init__(self, server_config.mode)
         # server config requirements for CsfToolRequestHandlerMethods
-        self.setServerConfig(server_config, **kwargs)
+        self.setServerConfig(server_config)
         self.setToolConfig(server_config)
         # additional attributes required by specific request handlers
-        if kwargs: self.setHandlerAttributes(self, **kwargs)
-
+        if kwargs:
+            self.setHandlerAttributes(**kwargs)
+            self.debug = kwargs.get('debug', False)
+            self.verbose = kwargs.get('verbose', False)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -36,8 +38,11 @@ class AppleFrostVarietyRequestHandler(AppleFrostToolFactory,
         # initialize the factory and it's inherited config/registry
         AppleFrostToolFactory.__init__(self, server_config.mode)
         # server config requirements for CsfToolRequestHandlerMethods
-        self.setServerConfig(server_config, **kwargs)
+        self.setServerConfig(server_config)
         self.setToolConfig(server_config)
         # additional attributes required by specific request handlers
-        if kwargs: self.setHandlerAttributes(self, **kwargs)
+        if kwargs:
+            self.setHandlerAttributes(**kwargs)
+            self.debug = kwargs.get('debug', False)
+            self.verbose = kwargs.get('verbose', False)
 

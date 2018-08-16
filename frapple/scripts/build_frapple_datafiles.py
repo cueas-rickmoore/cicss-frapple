@@ -113,32 +113,21 @@ for key in tool_factory.tool.varieties.keys():
 
     # create a arrays for kill potential
     print('    creating kill temperature arrays')
-    kill_t10 = N.full(stages.shape, N.nan, float)
-    kill_t50 = N.full(stages.shape, N.nan, float)
-    kill_t90 = N.full(stages.shape, N.nan, float)
-    # fill the arrays with actual kill temperatures for each stage
-    kill_temps = [ item[1]
-                   for item in tool_factory.tool.kill_temps.attrs.items() ]
-    for stage, temps in enumerate(kill_temps):
-        indexes = N.where(stages == stage)
-        if len(indexes[0]) > 0:
-            kill_t10[indexes] = temps[0]
-            kill_t50[indexes] = temps[1]
-            kill_t90[indexes] = temps[2]
+    kill_t10, kill_t50, kill_t90 = builder.stagesToKillTemps(variety, stages)
 
     print('    initializing T10 dataset')
     builder.open('a')
-    builder.buildDataset('T10', data=kill_t10, chunks=chunks, **dates)
+    builder.buildDataset('T10', data=kill_t10, **dates)
     builder.close()
 
     print('    initializing T50 dataset')
     builder.open('a')
-    builder.buildDataset('T50', data=kill_t50, chunks=chunks, **dates)
+    builder.buildDataset('T50', data=kill_t50, **dates)
     builder.close()
 
     print('    initializing T90 dataset')
     builder.open('a')
-    builder.buildDataset('T90', data=kill_t90, chunks=chunks, **dates)
+    builder.buildDataset('T90', data=kill_t90, **dates)
     builder.close()
 
     print('    initializing mint dataset')

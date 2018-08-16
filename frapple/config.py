@@ -13,10 +13,10 @@ PKG_DIRPATH = SERVER_DIRPATH[:SERVER_DIRPATH.rfind(os.sep)]
 RESOURCE_PATH = os.path.join(SERVER_DIRPATH, 'resources')
 
 PROJECT_END_DAY = (6,30)
-PROJECT_START_DAY = (9,15)
+PROJECT_START_DAY = (10,1)
 
 SEASON_END_DAY = (6,30)
-SEASON_START_DAY = (9,15)
+SEASON_START_DAY = (10,1)
 
 # kills 10%, 50%, 90% of buds at temp
 KILL_TEMPS = [ (-25,-25,-25), (11,5,0), (19,10,4), (22,17,11), (25,21,18),
@@ -61,13 +61,14 @@ CFGBASE.datasets.lat.copy('lat', CONFIG.datasets)
 CFGBASE.datasets.lon.copy('lon', CONFIG.datasets)
 del CFGBASE
 
-CONFIG.datasets.compressed = { 'dtype':float,
-                               'dtype_packed':float,
+CONFIG.datasets.compressed = { 'dtype':int,
+                               #'dtype_packed':N.int8,
+                               'dtype_packed':N.int16,
                                'end_day':PROJECT_END_DAY,
                                'compression':'gzip',
                                'chunks':('num_days',1,1),
-                               'missing_data':N.nan,
-                               'missing_packed':N.nan,
+                               'missing_data':-32768,
+                               'missing_packed':-32768,
                                'period':'date',
                                'scope':'season',
                                'start_day':PROJECT_START_DAY,
@@ -91,10 +92,6 @@ CONFIG.datasets.T90.description = '90%% Kill Temperature'
 
 CONFIG.datasets.compressed.copy('stage', CONFIG.datasets)
 CONFIG.datasets.stage.description = "Bud Development Stage"
-CONFIG.datasets.stage.dtype = "<i2"
-CONFIG.datasets.stage.dtype_packed = "<i2"
-CONFIG.datasets.stage.missing_data = -32768
-CONFIG.datasets.stage.missing_packed = -32768
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # paths to Apple Freeze Damage Potential tool directories
@@ -200,7 +197,8 @@ CONFIG.modes.test.update({
        'tool_url': 'http://cyclone.nrcc.cornell.edu:8082/frapple',
        })
 CONFIG.modes.test.dirpaths.resources = \
-       '/Volumes/Transport/venvs/apple/tool_pkg/frapple/resources'
+       '/Volumes/Transport/venvs/apple/tool_pkg/frapple/dev-resources'
+       #'/Volumes/Transport/venvs/apple/tool_pkg/frapple/resources'
 
 CONFIG.modes.dev.copy('wpdev', CONFIG.modes)
 CONFIG.modes.wpdev.home = 'wpdev-frapple.html'
@@ -219,6 +217,8 @@ CONFIG.project.shared_forecast = True
 CONFIG.project.shared_source = True
 CONFIG.project.start_day = PROJECT_START_DAY
 CONFIG.project.source = 'acis'
+CONFIG.project.subdir_path = \
+               ('apple','tool','%(region)s','%(source)s','%(variety)s')
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # config resources & paths to files
@@ -231,6 +231,7 @@ resource_map = { '/' : ('page', 'file', ('pages','frapple.html')),
                  'pages'   : ('page',  'dir', 'pages'),
                  'style'   : ('file',  'dir', 'style'),
                  'tool.js' : ('tool', 'dir', 'js'),
+                 'tool-mgr.js' : ('tool', 'dir', 'js'),
                  'toolinit.js' : ('tool', 'dir', 'js'),
                  'frapple.html' : ('page',  'dir', 'pages'),
                }
@@ -251,9 +252,9 @@ CONFIG.server_port = 8082
 #  defaults necessary for tool initialization
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-chart_labels = '{"trend":"30 Day Trend (||date||)","season":"||season|| Season"'
+chart_labels = '{"trend":"30 Day Trend","season":"||season|| Season"'
 chart_labels += ',"season_to_date":"Season Thru ||season_end||"}'
-CONFIG.tool = {
+CONFIG.tool = { 'available_day':(10,15),
     # must be a javascript associative array as a string
     'button_labels': '{"season":"Full Season", "trend":"30 Day Trend"}',
     # must be a javascript associative array as a string
@@ -269,14 +270,14 @@ CONFIG.tool = {
     'default_doi':(3,15),                # default date of interest
     #    NOTE: significant freeze events 2/11-15/2016 and 4/2-10/2016
     'default_variety': 'empire',         # default apple variety
-    'display_anchor':"#csftool-display",
     #    NOTE: variety most likely to exhibit freeze damage in any season
-    'first_season':2015,                 # first season with data
+    'display_anchor':"#csftool-display",
+    'first_season':2017,                 # first season with data
     'gdd_thresholds':((43,86),),
     'inherit_resources':'csftool',       # key to inherited set of resources
     'kill_temps':OrderedDict(zip(STAGES,KILL_TEMPS)), # ordered pairs
     'kill_index':1, 
-    'last_season':2016,                  # last season with data
+    #'last_season':2017,                  # last season with data
     #    index of kill temp to use for plotting stages.
     'models':('carolina',),
     'season_description':'%(start_year)d-%(end_year)d Growing Season',
@@ -285,7 +286,7 @@ CONFIG.tool = {
     'stages':tuple(STAGES),              # ordered keywords for all stages
     'toolname':'frapple',                # name forwarding server knows
     'varieties':{'empire':{'description':'Empire Apple',},
-                 'mac_geneva':{'description':'Macintosh Apple (Geneva)',},
+                 'mac_geneva':{'description':'Macintosh Apple',},
                  'red_delicious':{'description':'Red Delicious Apple',},
                 },
     }
@@ -313,15 +314,17 @@ CONFIG.tool.default_location = 'Appleseed'
 CONFIG.tool.locations = { 
        'Appleseed': {'lat':42.282480, 'lon':-76.934862,
        'address': "Johnny Appleseed's Orchard, DeMunn Rd, Beaver Dams, NY"},
-       'BeakSkiff': {'lat':42.903461, 'lon':-76.222554,
-       'address': 'Beak & Skiff, 2705 Lords Hill Rd, Lafayette, NY'},
-       'Fishkill': {'lat':41.518224, 'lon':-73.823300,
-       'address': 'Fishkill Farms, 96 Fishkill Farm Rd, Hopewell Junction, NY'},
-       'Stonehill': {'lat':42.577255, 'lon':-78.919908,
-       'address': 'Stonehill Orchard, 2356 Shirley Rd, North Collins, NY'},
-       'Zappa': {'lat':45.450908, 'lon':-70.487016,
-       'address':"Joe's Garage, MidlONoWhe, Somerset County, ME"},
+       #'BeakSkiff': {'lat':42.903461, 'lon':-76.222554,
+       #'address': 'Beak & Skiff, 2705 Lords Hill Rd, Lafayette, NY'},
+       #'Fishkill': {'lat':41.518224, 'lon':-73.823300,
+       #'address': 'Fishkill Farms, 96 Fishkill Farm Rd, Hopewell Junction, NY'},
+       #'Stonehill': {'lat':42.577255, 'lon':-78.919908,
+       #'address': 'Stonehill Orchard, 2356 Shirley Rd, North Collins, NY'},
+       #'Zappa': {'lat':45.450908, 'lon':-70.487016,
+       #'address':"Joe's Garage, MidlONoWhe, Somerset County, ME"},
        }
+CONFIG.tool.testLocation = {'id':'Zappa', 'lat':45.450908, 'lon':-70.487016,
+            'address':"Joe's Garage, MidlONoWhe, Somerset County, ME"}
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -334,7 +337,7 @@ CONFIG.tool.varieties = {
             'phenology':OrderedDict(zip(STAGES,(0,91,107,170,224,288,384,492)))
            },
         'mac_geneva':{
-            'description':'Macintosh Apple (Geneva)',
+            'description':'Macintosh Apple',
             'min_chill_units':1100,
             'phenology':OrderedDict(zip(STAGES,(0,85,121,175,233,295,382,484)))
            },

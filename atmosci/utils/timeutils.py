@@ -271,7 +271,7 @@ def dateAsInt(whatever, need_hour=False, need_time=False):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def dateAsString(whatever, date_format='%Y%m%d'):
+def dateAsString(whatever, date_format='%Y-%m-%d'):
     return asDatetime(whatever, True).strftime(date_format)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

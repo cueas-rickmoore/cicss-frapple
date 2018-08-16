@@ -42,7 +42,7 @@ class AppleVarietyGridVisualizer(AppleVarietyGridManager):
 
         # set the map file path
         map_options['outputfile'] =\
-            self.mapFilepath(date, model, map_group, map_type, None, None)
+        self.mapFilepath(date, model, map_group, map_type, None, None)
         return map_options
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -93,76 +93,96 @@ class AppleVarietyGridVisualizer(AppleVarietyGridManager):
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+    def drawChillMaskMap(self, date, model, lo_gdd_th, hi_gdd_th, verbose=False):
+        lats = self.lats
+        lons = self.lons
+        # get initiaized map options from config file
+        map_options = self.initMapOptions(date, model, None, None, 'variety',
+                                          'mask', 'mask')
+        var_config = fromConfig('crops.apple.variety')
+
+        # get stage index for date and draw the map
+        mask = self.getChillMask(model.name, lo_gdd_th, hi_gdd_th, date)
+        indexes = N.where(mask == True)
+
+        # kill is probable at one or more grid nodes
+        if len(indexes[0]) > 0:
+
+            options, _map_, map_fig, axes, xy_extremes, x, y, _grid_ = \
+            hiResMap(mask, lats, lons, **map_options)
+            del x, y, _grid_
+
+            x,y = _map_(lons[indexes].flatten(), lats[indexes].flatten())
+            fig1 = _map_.scatter(x, y, c='r', s=3, marker='^', linewidths=0)
+            addModelText(map_fig, model, **map_options)
+            finishMap(map_fig, axes, map_fig, **options)
+            return options['outputfile']
+
+        # no kill events - draw a blank map
+        else:
+            config = fromConfig('crops.apple.variety.maps.no_data.kill.attrs')
+            return drawNoDataMap(lons, lats, config=config, model=model,
+                                 **map_options)
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
     def drawGDDMap(self, date, model, lo_gdd_th, hi_gdd_th, verbose=False):
+        min_gdd = fromConfig('crops.apple.variety.maps.min_gdd_to_post')
+        min_percent = fromConfig('crops.apple.variety.maps.min_percent_nodes')
+        lats = self.lats
+        lons = self.lons
         # get initiaized map options from config file
         map_options = self.initMapOptions(date, model, lo_gdd_th, lo_gdd_th,
                                           'variety', 'gdd', 'gdd')
 
-        # get GDD accumulations for the date
+        # get GDD accumulations for the date and draw the map
         gdd_grid = self.getGdd(model.name, lo_gdd_th, hi_gdd_th, date)
         gdd_grid[N.where(gdd_grid < 0.99)] = N.nan
 
-        # check whether chill threshold has been met (i.e. a minimum
-        # percentage of GDD data is not NAN)
         finite = N.where(N.isfinite(gdd_grid))
         num_finite = len(finite[0])
         if num_finite > 0:
-            min_gdd = fromConfig('crops.apple.variety.maps.min_gdd_to_post')
-            min_percent = \
-                fromConfig('crops.apple.variety.maps.min_percent_nodes')
             num_ge_min = float(len(N.where(gdd_grid[finite] >= min_gdd)[0]))
             draw_contours = (num_ge_min / num_finite) > min_percent
         else: draw_contours = False
-
-        # has minimum percentage of valid nodes
         if draw_contours:
             map_options['finish'] = False
             options, _map_, fig, axes, fig1, xy_extremes = \
-            drawFilledContours(gdd_grid, self.lats, self.lons, **map_options)
+            drawFilledContours(gdd_grid, lats, lons, **map_options)
             addModelText(fig, model, **map_options)
             finishMap(fig, axes, fig1, **options)
             return options['outputfile']
         else:
             config = fromConfig('crops.apple.variety.maps.no_data.gdd.attrs')
-            return drawNoDataMap(self.lons, self.lats, model, config=config, 
+            return drawNoDataMap(lons, lats, config=config, model=model,
                                  **map_options)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     def drawKillMap(self, date, model, lo_gdd_th, hi_gdd_th, verbose=False):
+        lats = self.lats
+        lons = self.lons
         # get initiaized map options from config file
         map_options = self.initMapOptions(date, model, None, None, 'variety',
                                           'kill', 'kill')
+        var_config = fromConfig('crops.apple.variety')
 
-        # get kill index for date
+        # extract options required for plotting markers 
+        marker_colors = map_options['markercolors']
+        kill_probabilities = var_config.kill_probabilities
+
+        # get stage index for date and draw the map
         kill = self.getKill(model.name, lo_gdd_th, hi_gdd_th, date)
-
-        # check whether chill threshold has been met (i.e. a minimum
-        # percentage of kill data is not 0)
-        killable = N.where(kill > 0)
-        num_killable = len(killable[0])
-        if num_killable > 0:
-            min_percent = \
-                fromConfig('crops.apple.variety.maps.min_percent_nodes')
-            max_valid_nodes = \
-                float(fromConfig('crops.apple.variety.maps.max_valid_nodes'))
-            draw_contours = \
-                (float(num_killable) / max_valid_nodes) > min_percent
-        else: draw_contours = False
-
+        indexes = N.where(kill > 0)
         # kill is probable at one or more grid nodes
-        if draw_contours:
-            var_config = fromConfig('crops.apple.variety')
-            kill_probabilities = var_config.kill_probabilities
-
-            marker_colors = map_options['markercolors']
+        if len(indexes[0]) > 0:
             options, _map_, map_fig, axes, xy_extremes, x, y, _grid_ = \
-            hiResMap(kill, self.lats, self.lons, **map_options)
+            hiResMap(kill, lats, lons, **map_options)
             del x, y, _grid_
 
-            kill = kill[killable].flatten()
-            lats = self.lats[killable].flatten()
-            lons = self.lons[killable].flatten()
+            kill = kill[indexes].flatten()
+            _lats_ = lats[indexes].flatten()
+            _lons_ = lons[indexes].flatten()
 
             # draw a separate map layer for each probability
             for indx, probability in enumerate(kill_probabilities,start=1):
@@ -172,8 +192,8 @@ class AppleVarietyGridVisualizer(AppleVarietyGridManager):
 
                     fig = addScatterToMap(options, _map_, map_fig, 
                                           kill[prob_indexes],
-                                          lats[prob_indexes],
-                                          lons[prob_indexes],
+                                          _lats_[prob_indexes],
+                                          _lons_[prob_indexes],
                                           markercolor=marker_colors[indx-1])
             addModelText(map_fig, model, **map_options)
             finishMap(map_fig, axes, map_fig, **options)
@@ -181,106 +201,77 @@ class AppleVarietyGridVisualizer(AppleVarietyGridManager):
 
         # no kill events - draw a blank map
         else:
-            # get stage index for date
-            stage_data = self.getStage(model.name, lo_gdd_th, hi_gdd_th, date)
-            if len(N.where(stage_data > 0)[0]) > 0:
-                config = fromConfig('crops.apple.variety.maps.blank.kill.attrs')
-                return drawNoDataMap(self.lons, self.lats, model, config=config,
-                                     **map_options) 
-            else:
-                config = fromConfig('crops.apple.variety.maps.no_data.kill.attrs')
-                return drawNoDataMap(self.lons, self.lats, model, config=config, 
-                                     **map_options)
+            config = fromConfig('crops.apple.variety.maps.no_data.kill.attrs')
+            return drawNoDataMap(lons, lats, config=config, model=model,
+                                 **map_options)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     def drawStageMap(self, date, model, lo_gdd_th, hi_gdd_th, verbose=False):
+        lats = self.lats
+        lons = self.lons
         # get initiaized map options from config file
         map_options = self.initMapOptions(date, model, lo_gdd_th, lo_gdd_th,
                                   'variety', 'stage', 'stage')
-
-        # get stage index for date
-        stage_data = self.getStage(model.name, lo_gdd_th, hi_gdd_th, date)
-        indexes = N.where(stage_data == 0)
-
-        # check whether miniumu GDD accumulation has been met (i.e. a minimum
-        # percentage of GDD data is not 0)
-        growing = N.where(stage_data > 0)
-        num_growing = len(growing[0])
-        if num_growing > 0:
-            min_percent = \
-                fromConfig('crops.apple.variety.maps.min_percent_nodes')
-            max_valid_nodes = \
-                float(fromConfig('crops.apple.variety.maps.max_valid_nodes'))
-            plot_stage_markers = \
-                (float(num_growing) / max_valid_nodes) > min_percent
-        else: plot_stage_markers = False
+        var_config = fromConfig('crops.apple.variety')
 
         # extract options required for plotting markers 
+        marker_colors = map_options['markercolors']
+        stage_name_map = var_config.stage_name_map
 
-        if plot_stage_markers:
-            var_config = fromConfig('crops.apple.variety')
-            stage_name_map = var_config.stage_name_map
+        # get stage index for date and draw the map
+        stage_data = self.getStage(model.name, lo_gdd_th, hi_gdd_th, date)
 
-            marker_colors = map_options['markercolors']
+        isfinite = N.where(N.isfinite(stage_data))
+        if len(N.where(stage_data[isfinite] > 0)[0]) > 0:
             options, _map_, map_fig, axes, xy_extremes, x, y, _grid_ = \
-            hiResMap(stage_data, self.lats, self.lons, **map_options)
+            hiResMap(stage_data, lats, lons, **map_options)
             del x, y, _grid_
 
-            plottable = N.where(stage_data >= 0)
-            lats = self.lats[plottable].flatten()
-            lons = self.lons[plottable].flatten()
-            stage_data = stage_data[plottable].flatten()
+            _lats_ = lats[isfinite].flatten()
+            _lons_ = lons[isfinite].flatten()
+            stage_data = stage_data[isfinite].flatten()
 
             for stage in range(len(stage_name_map.attrs)):
                 indexes = N.where(stage_data == stage)
                 if len(indexes[0]) > 0:
                     fig = addScatterToMap(map_options, _map_, map_fig, 
                                           stage_data[indexes],
-                                          lats[indexes],
-                                          lons[indexes],
+                                          _lats_[indexes],
+                                          _lons_[indexes],
                                           markercolor=marker_colors[stage])
             addModelText(map_fig, model, **map_options)
             finishMap(map_fig, axes, map_fig, **options)
             return options['outputfile']
         else:
             config = fromConfig('crops.apple.variety.maps.no_data.stage.attrs')
-            return drawNoDataMap(self.lons, self.lats, model, config=config, 
+            return drawNoDataMap(lons, lats, config=config, model=model,
                                  **map_options)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     def drawStageContourMap(self, date, model, lo_gdd_th, hi_gdd_th,
                                   verbose=False):
+        lats = self.lats
+        lons = self.lons
         # get initiaized map options from config file
         map_options = self.initMapOptions(date, model, lo_gdd_th, lo_gdd_th,
-                                          'variety', 'stage', 'stage')
+                                  'variety', 'stage', 'stage')
 
-        # get stage index for date
+        # get stage index for date and draw the map
         stage_grid = self.getStage(model.name, lo_gdd_th, hi_gdd_th, date)
 
-        # check whether miniumu GDD accumulation has been met (i.e. a minimum
-        # percentage of GDD data is not 0)
-        num_growing = len(N.where(stage_data > 0))
-        if num_growing > 0:
-            min_percent = \
-                fromConfig('crops.apple.variety.maps.min_percent_nodes')
-            max_valid_nodes = \
-                float(fromConfig('crops.apple.variety.maps.max_valid_nodes'))
-            draw_contours = \
-                (float(num_growing) / max_valid_nodes) > min_percent
-        else: draw_contours = False
-
-        if draw_contours:
+        isfinite = N.where(N.isfinite(stage_grid))
+        if len(N.where(stage_grid[isfinite] > 0)[0]) > 0:
             map_options['finish'] = False
             options, _map_, fig, axes, fig1, xy_extremes = \
-            drawFilledContours(stage_grid, self.lats, self.lons, **map_options)
+            drawFilledContours(stage_grid, lats, lons, **map_options)
             addModelText(fig, model, **map_options)
             finishMap(fig, axes, fig1, **options)
             return options['outputfile']
         else:
             config = fromConfig('crops.apple.variety.maps.no_data.stage.attrs')
-            return drawNoDataMap(self.lons, self.lats, model, config=config, 
+            return drawNoDataMap(lons, lats, config=config, model=model,
                                  **map_options)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

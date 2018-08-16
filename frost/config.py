@@ -106,41 +106,6 @@ CONFIG.provenance.generators.temp = tempProvenanceGenerator
 CONFIG.provenance.names.temp = ['date','min','max','avg','median','dowmloaded']
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# import APPLE crop configuration
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-from frost.apple.config import APPLE
-CONFIG.crops.addChild(APPLE.copy())
-APPLE_FILES = ConfigObject('filenames', CONFIG.crops.apple, 'animation',
-                           'data', 'maps', 'web_anim', 'web_maps')
-
-APPLE_FILES.animation.chill = \
-'%(date_str)s-Frost-Apple-%(model)s-%(map_type)s-Chill-animation.gif'
-APPLE_FILES.animation.gdd = '%d-Frost-Apple-CDD.gif'
-'%(date_str)s-Frost-Apple-%(map_type)s-GDD-animation.gif'
-APPLE_FILES.animation.variety = \
-'%(date_str)s-Frost-Apple-%(variety)s-%(map_type)s-animation.gif'
-
-APPLE_FILES.data.chill = '%d-Frost-Apple-Chill.h5'
-APPLE_FILES.data.gdd = '%d-Frost-Apple-Chill.h5'
-APPLE_FILES.data.variety = '%d-Frost-Apple-%s.h5'
-
-APPLE_FILES.maps.chill =\
-'%(date_str)s-Frost-Apple-%(model)s-%(map_type)s-Chill.png'
-APPLE_FILES.maps.gdd =\
-'%(date_str)s-Frost-Apple-%(map_type)s-GDD.png'
-APPLE_FILES.maps.variety =\
-'%(date_str)s-Frost-Apple-%(variety)s-%(model)s-%(map_type)s.png'
-
-APPLE_FILES.web_anim.chill = 'Frost-Apple-%(map_type)s-Chill.gif'
-APPLE_FILES.web_anim.gdd = 'Frost-Apple-%(map_type)s-GDD.gif'
-APPLE_FILES.web_anim.variety = 'Frost-Apple-%(variety)s-%(map_type)s.gif'
-
-APPLE_FILES.web_maps.chill = 'Frost-Apple-%(map_type)s-Chill.png'
-APPLE_FILES.web_maps.gdd = 'Frost-Apple-%(map_type)s-GDD.png'
-APPLE_FILES.web_maps.variety = 'Frost-Apple-%(variety)s-%(map_type)s.png'
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # import GRAPE crop configuration
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

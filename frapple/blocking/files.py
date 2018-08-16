@@ -14,7 +14,7 @@ from frapple.blocking.handler import AppleFrostVarietyRequestHandler
 TOOL_FILE_HANDLERS = { 'file' : CsfToolBlockingFileHandler,
                        'icon' : CsfToolBlockingImageFileHandler,
                        'image' : CsfToolBlockingImageFileHandler,
-                       'toolinit.js': CsfToolBlockingFileHandler
+                       'toolinit.js': CsfToolBlockingFileHandler,
                      }
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -88,19 +88,20 @@ class AppleFrostBlockingInitHandler(TemplateHandlerMethods,
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     def extractTemplateParameters(self, request_dict):
+        today = datetime.date.today()
         # start with dates of current season 
         parameters = self.extractServerParameters(request_dict)
 
         # deafult season parameters
         year  = self.mode_config.get('season', None)
-        if year is None: year = datetime.date.today().year
+        if year is None: year = today.year
         elif isinstance(year, basestring): year = int(year)
         parameters['season'] = year
 
         season_end_day = list(self.tool.season_end_day)
         parameters['season_end_day'] = season_end_day
-        parameters['season_end'] = \
-            self.appDateFormat(self.seasonEndDate(year))
+        season_end_date = self.seasonEndDate(year)
+        parameters['season_end'] = self.appDateFormat(season_end_date)
 
         season_start_day = list(self.tool.season_start_day)
         parameters['season_start_day'] = season_start_day
@@ -111,10 +112,16 @@ class AppleFrostBlockingInitHandler(TemplateHandlerMethods,
             description % {'start_year':year-1, 'end_year':year }
 
         # add default date of interest
-        default_doi = self.tool.default_doi
-        if not isinstance(default_doi, basestring): # needs to be YYYY-MM_DD
-            default_doi = \
-                self.appDateFormat(self.dayToSeasonDate(year,default_doi))
+        default_doi = today - datetime.timedelta(days=1)
+        if default_doi > season_end_date:
+            default_doi = self.tool.get('default_doi', None)
+            if default_doi is None:
+                default_doi = season_end_date - datetime.timedelta(days=15)
+            else: # default doi is a list/tuple
+                if default_doi[0] < season_end_day[0]:
+                    default_doi = self.dayToSeasonDate(year,default_doi)
+                else: default_doi = self.dayToSeasonDate(year-1,default_doi)
+        default_doi = self.appDateFormat(default_doi)
         parameters['default_doi'] = default_doi 
         parameters['doi'] = default_doi
 
@@ -125,17 +132,9 @@ class AppleFrostBlockingInitHandler(TemplateHandlerMethods,
         parameters['varieties_js'] = self.tool.varieties_js
 
         # check for multiple years ... always a sequence
-        parameters['min_year'] = self.tool.first_season
-        if parameters['min_year'] is None:
-            today = datetime.date.today()
-            parameters['min_year'] = self.maxAvailableYear(today)
-            parameters['max_year'] = parameters['min_year']
-        else:
-            max_year = self.tool.get('last_season',None)
-            if max_year is None:
-                today = datetime.date.today()
-                max_year = self.maxAvailableYear(today)
-            parameters['max_year'] = max_year
+        first_year = self.tool.get('first_year', year)
+        parameters['min_year'] = first_year
+        parameters['max_year'] = self.tool.get('last_year', first_year)
 
         # add location parameters
         loc_key = self.tool.default_location
@@ -149,10 +148,10 @@ class AppleFrostBlockingInitHandler(TemplateHandlerMethods,
         # prameters specific to toolint.js script initialization
         parameters['button_labels'] = self.tool.button_labels
         parameters['chart_labels'] = self.tool.chart_labels
-        parameters['stage_labels'] = self.tool.stage_labels
         parameters['chart_types'] = self.tool.chart_types
         parameters['default_chart'] = self.tool.default_chart
         parameters['server_url'] = self.server_config.server_url
+        parameters['stage_labels'] = self.tool.stage_labels
         parameters['toolname'] = self.toolname
 
         return parameters
@@ -160,6 +159,8 @@ class AppleFrostBlockingInitHandler(TemplateHandlerMethods,
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 TOOL_FILE_HANDLERS['tool'] = AppleFrostBlockingInitHandler
+TOOL_FILE_HANDLERS['tool-no-log'] = AppleFrostBlockingInitHandler
 TOOL_FILE_HANDLERS['tool.js'] = AppleFrostBlockingInitHandler
+TOOL_FILE_HANDLERS['tool-no-log.js'] = AppleFrostBlockingInitHandler
 #TOOL_FILE_HANDLERS['toolinit.js'] = AppleFrostBlockingInitHandler
 

@@ -31,8 +31,7 @@ class BasicFileAccessorMethods:
                 class_type = filetype_key.split('.')[0]
             else: class_type = filetype_key
         Classes = self.AccessClasses.get(class_type, None)
-        if Classes is None:
-            Classes = self.AccessClasses.get(self.AccessClasses.default)
+        if Classes is None: Classes = self.AccessClasses.default
         return Classes[access_type]
     getFileAccessorClass = fileAccessorClass
 

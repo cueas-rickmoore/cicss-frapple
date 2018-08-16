@@ -1,4 +1,3 @@
-
 ;(function(jQuery) {
 
 var tooltipFormatter = function() {
@@ -49,31 +48,42 @@ var ChartController = {
                       type:"line", lineWidth:0, color:"#008b8b",
                       marker: { enabled:false, states:{hover:{enabled:false}} }
         },
-        "t50area" : { name: '50% Damage Potential', zIndex:10,
-                      type:"area", lineWidth:0, color:"#ffa500", 
+        "t10fcast" : { name: "10% Damage Fcast", zIndex:1, showInLegend:false,
+                       type:"line", lineWidth:3, dashStyle:"Dot", color:"#008b8b",
+                       marker: { enabled:false, states:{hover:{enabled:false}} }
+        },
+        "t50area" : { name: '50% Damage Potential', zIndex:3,
+                      type:"area", lineWidth:0, color:"#ffb3b3", 
                       marker: { enabled:false, states:{hover:{enabled:false}} }
+        },
+        "t50fcast" : { name: "50% Damage Fcast", zIndex:12,
+                      type:"line", lineWidth:3, dashStyle:"Dot", color:"#ffa500",
+                      marker: { enabled:true, fillColor: "#ffa500", lineWidth:1, lineColor:"#ffa500", radius:3, symbol:"circle" }
         },
         "t50temp" : { name: "50% Damage Temp", zIndex:12,
                       type:"line", lineWidth:3, color:"#ffa500",
-                      marker: { enabled:false, states:{hover:{enabled:false}} }
-                       //marker: { enabled:true, fillColor: "#ffa500", lineWidth:1, lineColor:"#ffa500", radius:3, symbol:"circle" }
+                      marker: { enabled:true, fillColor: "#ffa500", lineWidth:1, lineColor:"#ffa500", radius:3, symbol:"circle" }
         },
-        "t90temp" : { name: "90% Damage Temp", zIndex:1, showInLegend:false,
+        "t90temp" : { name: "90% Damage Temp", zIndex:2, showInLegend:false,
                       type:"line", lineWidth:0, color:"#ff0000",
                       marker: { enabled:false, states:{hover:{enabled:false}} }
         },
+        "t90fcast" : { name: "90% Damage Fcast", zIndex:2, showInLegend:false,
+                       type:"line", lineWidth:3, dashStyle:"Dot", color:"#ff0000",
+                       marker: { enabled:false, states:{hover:{enabled:false}} }
+        },
         // need dummy fill for "safe" mint values
-        "mintarea" : { name: 'No Damage Potential', zIndex:3, showInLegend:false,
+        "mintarea" : { name: 'No Damage Potential', zIndex:5, showInLegend:false,
                        type:"area", lineWidth:0, color:"#ffffff", fillOpacity:1.0,
                        marker: { enabled:false, states:{hover:{enabled:false}} }
         },
         "mintemp" : { name: "Min Temperature", zIndex:15,
                       type:"line", lineWidth:2, color:"#0000ff",
-                      marker: { enabled:true, fillColor: "#0000ff", lineWidth:1, lineColor:"#0000ff", radius:3, symbol:"circle" }
+                       marker:{enabled:false,}
         },
         "mintfcast" : { name: "Min Temp Forecast", zIndex:14,
-                        type:"line", lineWidth:0, color:"#4b0082",
-                        marker: { enabled:true, fillColor: "#4b0082", lineWidth:1, lineColor:"#4b0082", radius:3, symbol:"circle" }
+                        type:"line", lineWidth:2, dashStyle:"Dot", color:"#0000ff",
+                        marker: { enabled:true, fillColor: "#0000ff", lineWidth:1, lineColor:"#0000ff", radius:3, symbol:"circle" }
         },
     },
 
@@ -117,7 +127,9 @@ var ChartController = {
         return all_drawn;
     },
 
-    bind: function(event_type, callback) { if (this.event_types.indexOf(event_type) > 0) { this.callbacks[event_type] = callback; } },
+    bind: function(event_type, callback) {
+        if (this.event_types.indexOf(event_type) > 0) { this.callbacks[event_type] = callback; }
+    },
 
     clear: function() {
         while( this.chart.series.length > 0 ) { this.chart.series[0].remove(false); }; 
@@ -130,7 +142,10 @@ var ChartController = {
     chartLabels: function(labels) { this.chart_labels = jQuery.extend(this.chart_labels , labels); },
     chartType: function(chart_type) { this.chart_type = chart_type; },
     chartWidth: function(width) { this.chart_config.chart["width"] = width; },
-    complete: function(reset) { if (this.allDrawn()) { this.execCallback("drawing_complete"); } },
+
+    complete: function(reset) {
+        if (this.allDrawn()) { this.execCallback("drawing_complete"); }
+    },
 
     dataExtremes: function(data_array) {
         var i, value;
@@ -144,11 +159,15 @@ var ChartController = {
     },
 
     draw: function() {
+        this.tool.logObjectAttrs(this.view);
         this.addSeries("mintemp", this.tool.observed("mint", this.view));
-        //this.addSeries("mintfcast", this.tool.forecast("mint", this.view));
-        this.addSeries("t10temp", this.tool.fullview("T10", this.view));
-        this.addSeries("t50temp", this.tool.fullview("T50", this.view));
-        this.addSeries("t90temp", this.tool.fullview("T90", this.view));
+        this.addSeries("mintfcast", this.tool.forecast("mint", this.view));
+        this.addSeries("t10temp", this.tool.observed("T10", this.view));
+        this.addSeries("t10fcast", this.tool.forecast("T10", this.view));
+        this.addSeries("t50temp", this.tool.observed("T50", this.view));
+        this.addSeries("t50fcast", this.tool.forecast("T50", this.view));
+        this.addSeries("t90temp", this.tool.observed("T90", this.view));
+        this.addSeries("t90fcast", this.tool.forecast("T90", this.view));
     },
 
     drawChartLabel: function() {
@@ -159,11 +178,8 @@ var ChartController = {
             index = label.indexOf('||season||')
             if (index >= 0) { label = label.replace('||season||', this.season);
             } else {
-                if (this.view.last_valid < this.view.season_end) {
-                    label = this.chart_labels.season_end; 
-                    index = label.indexOf('||season_end||');
-                    if (index >= 0) { label = label.replace('||season_end||', this.view.season_end_str); }
-                }
+                index = label.indexOf('||season_end||');
+                if (index >= 0) { label = label.replace('||season_end||', this.view.season_end_str); }
             }
         }
         if (label) { this.chart.renderer.text(label, 325, 85).css({ color:"#000000", fontSize:"16px"}).add(); }
@@ -182,12 +198,11 @@ var ChartController = {
         jQuery(this.display_anchor).append(this.dom);
         Highcharts.setOptions({ global: { useUTC: false } });
         this.initialized = true;
-        if (this.chart_type == null) {
-            this.chart_type = this.default_chart;
-        }
+        if (this.chart_type == null) { this.chart_type = this.default_chart; }
     },
 
     locationChange: function(loc_obj) {
+        this.tool.logObjectAttrs(loc_obj);
         if (this.location == null || loc_obj.address != this.location) { this.location = loc_obj.address; }
         if ("variety" in loc_obj) { this.varietyChange(loc_obj.variety) }
     },
@@ -214,7 +229,9 @@ var ChartController = {
                 var i;
                 var name = this.components[series_key].name;
                 var num_series = this.chart.series.length;
-                for(i = 0; i < num_series; i++) { if (this.chart.series[i].name == name) { this.chart.series[i].remove(); break; } }
+                for(i = 0; i < num_series; i++) {
+                    if (this.chart.series[i].name == name) { this.chart.series[i].remove(); break; }
+                }
             } else { this.chart.destroy(); this.chart = null; }
         }
     },
@@ -247,10 +264,10 @@ var ChartController = {
     },
 
     setView: function(view_obj) {
+        this.tool.logObjectAttrs(view_obj)
         this.view = jQuery.extend({}, view_obj);
         this.view['doi_str'] = this.view.doi.toISOString().split("T")[0];
-        if (typeof this.view.season_end === 'string') { this.view['season_end_str'] = this.view.season_end;
-        } else { this.view['season_end_str'] = this.view.season_end.toISOString().split("T")[0]; }
+        this.view['season_end_str'] = this.view.end.toISOString().split("T")[0];
     },
 
     stageLabels: function(labels) { this.stage_labels = jQuery.extend(this.stage_labels , labels); },
@@ -260,7 +277,9 @@ var ChartController = {
 
     varietyChange: function(variety) {
         if (this.variety == null) { this.variety = variety;
-        } else if (variety != this.variety) { this.variety = variety; }
+        } else if (variety != this.variety) {
+            this.variety = variety;
+        }
     },
 }
 
@@ -272,6 +291,7 @@ var jQueryDisplayProxy = function() {
                 return ChartController.chart_type;
                 break;
             case "chart_anchor": return ChartController.chart_anchor; break;
+            case "clear": ChartController.clear(); break;
             case "display_anchor": return ChartController.display_anchor; break;
             case "draw": ChartController.draw(); break;
             case "drawn": return ChartController.drawn; break;

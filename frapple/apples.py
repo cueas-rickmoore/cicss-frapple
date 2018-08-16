@@ -29,7 +29,7 @@ APPLES.varieties = {
             'phenology':OrderedDict(zip(STAGES,(0,91,107,170,224,288,384,492)))
            },
         'mac_geneva':{
-            'description':'Macintosh Apple (Geneva)',
+            'description':'Macintosh Apple',
             'min_chill_units':1100,
             'phenology':OrderedDict(zip(STAGES,(0,85,121,175,233,295,382,484)))
            },

@@ -19,7 +19,6 @@ def addModelText(fig, model, **text_options):
                 'fontsize':text_options.get('model_fontsize',8),
                 'ha':text_options.get('model_ha','right'),
                 'va':text_options.get('model_va','center'),
-                'weight':text_options.get('weight','bold'),
                 'zorder':text_options.get('model_zorder',20),
               }
     x = text_options.get('model_x',0.875)
@@ -30,38 +29,13 @@ def addModelText(fig, model, **text_options):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def addTextAtPoint(fig, x, y, text, **text_options):
-    options = { 'backgroundcolor':text_options.get('bgcolor','white'),
-                'color':text_options.get('color','black'),
-                'fontsize':text_options.get('model_fontsize',12),
-                'ha':text_options.get('ha','center'),
-                'va':text_options.get('va','center'),
-                'zorder':text_options.get('zorder',20),
-              }
-    fig_text = fig.text(x, y, text, **options)
-
-
-    fig_text = fig.text(x, y, text, **options)
-    bbox = text_options.get('bbox', None)
-    if bbox is None:
-        alpha = text_options.get('alpha', None)
-        if alpha is not None:
-            fig_text.set_bbox({'alpha':alpha})
-    else: fig_text.set_bbox(bbox)
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-def drawNoDataMap(lons, lats, model, **options):
+def drawNoDataMap(lons, lats, **options):
+    model = options['model']
+    del options['model']
     map_options = resolveMapOptions(**options)
 
-    reason = None
     no_data_config = options.get('config', None)
-    if no_data_config is not None:
-        map_options.update(no_data_config)
-        if 'reason' in no_data_config:
-            reason = no_data_config['reason']
-            del map_options['reason']
-
+    if no_data_config is not None: map_options.update(no_data_config)
     _basemap_, map_fig, axes, xy_extremes = mapInit(lats, lons, **map_options)
 
     if 'contourbounds' in map_options:
@@ -74,11 +48,8 @@ def drawNoDataMap(lons, lats, model, **options):
         fig1 = _basemap_.contourf(x, y, zero, options['contourbounds'],
                                  **cmap_options)
     else: fig1 = map_fig
-    addModelText(map_fig, model, **map_options)
 
-    if reason is not None:
-        bbox = { 'color':'white', 'edgecolor':'red' }
-        addTextAtPoint(map_fig, 0.5, 0.5, reason, color='r', bbox=bbox)
+    addModelText(map_fig, model, **map_options)
     finishMap(map_fig, axes, fig1, **map_options)
 
     return map_options['outputfile']

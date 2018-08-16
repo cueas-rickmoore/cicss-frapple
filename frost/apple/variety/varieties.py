@@ -22,7 +22,7 @@ APPLES['empire'] = { 'description':'Empire Apple',
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 phenology = tuple( zip(APPLE_STAGES, (85, 121, 175, 233, 295, 382, 484) ) )
-APPLES['mac_geneva'] = { 'description':'McIntosh Apple (Geneva)',
+APPLES['mac_geneva'] = { 'description':'Macintosh Apple (Geneva)',
                      'min_chill_units':1100, 'phenology':OrderedDict(phenology),
                      'kill_temps':tuple(zip(APPLE_STAGES, APPLE_KILL_TEMPS)), 
          }

@@ -19,6 +19,34 @@ TOOL_DATA_HANDLERS =  { }
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+class AppleFrostLocationRequestHandler(AppleFrostBlockingRequestHandler):
+
+    def __call__(self, request):
+        # decode request variables into a dictionary
+        #request_dict = self.requestAsDict(request)
+
+        # compose JSON response string from default location
+        response_json = '{"locations":%s' % self.tool.locations_js
+        loc_name = self.tool.default_location
+        response_json = '%s,"selected":"%s"}' % (response_json, loc_name)
+
+        headers = { "Content-Type": "application/json",
+                    "Content-Length": "%d" % len(response_json) }
+        if "Origin" in request.headers:
+            origin = request.headers["Origin"]
+            headers["Access-Control-Allow-Origin"] = origin
+        request.connection.write_headers(
+                           ResponseStartLine(request.version, 200, 'OK'),
+                           HTTPHeaders(**headers))
+        request.connection.write(response_json)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+TOOL_DATA_HANDLERS['locations'] = AppleFrostLocationRequestHandler
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 class AppleFrostDataRequestHandler(AppleFrostVarietyRequestHandler):
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -79,7 +107,6 @@ class AppleFrostDataRequestHandler(AppleFrostVarietyRequestHandler):
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     def respondWithJSON(self, request, response_json):
-        response = "HTTP/1.1 200 OK"
         headers = { "Content-Type": "application/json",
                     "Content-Length": "%d" % len(response_json) }
         if "Origin" in request.headers:
@@ -104,8 +131,8 @@ class AppleFrostRiskDataHandler(AppleFrostDataRequestHandler):
         lat = location['lat']
         lon = location['lon']
 
-        start_date = dates['season_start']
-        last_valid = dates['last_valid']
+        start_date = asDatetimeDate(dates['season_start'])
+        last_valid = asDatetimeDate(dates['last_valid'])
 
         # get the min temp data slice at the requested location
         data_slice = \
@@ -115,7 +142,7 @@ class AppleFrostRiskDataHandler(AppleFrostDataRequestHandler):
             print '\nmint array size =', len(data_slice)
             print data_slice
         # initialize response data with min temp slice
-        data = ['"mint":%s' % self.serializeData(data_slice, '%.1f'),]
+        data = ['"mint":%s' % self.serializeData(data_slice, '%d'),]
 
         # get the data slice at the location for each kill temp dataset
         for dataset in ("T10","T50","T90"):
@@ -128,7 +155,7 @@ class AppleFrostRiskDataHandler(AppleFrostDataRequestHandler):
                 print data_slice
             # add the kill data
             template = '"%s":%%s' % dataset
-            data.append(template % self.serializeData(data_slice, '%.1f'))
+            data.append(template % self.serializeData(data_slice, '%d'))
         reader.close()
         del reader
 
@@ -164,9 +191,8 @@ class AppleFrostSeasonDatesHandler(AppleFrostBlockingRequestHandler):
         response = response % (dates['season_start'], dates['season_end'])
 
         # create an array of days for X axis of data plots
-        season_start = asDatetimeDate(dates['season_start'])
-        season_end = asDatetimeDate(dates['season_end'])
-        days = self.serializeDates(season_start, season_end)
+        days = self.serializeDates(asDatetimeDate(dates['season_start']),
+                                   asDatetimeDate(dates['season_end']))
         response = '%s,"dates":%s}}' % (response, days)
         if self.debug:
             print '\nAppleFrostSeasonDatesHandler response'
@@ -199,9 +225,6 @@ class AppleFrostStageDataHandler(AppleFrostDataRequestHandler):
 
         start_date = asDatetimeDate(dates['season_start'])
         last_valid = asDatetimeDate(dates['last_valid'])
-
-        season_start = dates['season_start']
-        season_end = dates['season_end']
 
         # get the stage data slice at the requested location
         reader.open()
